@@ -1,0 +1,8 @@
+---
+title: "Budgets & Limits Overview"
+description: "Prevent runaway LLM spend with gateway-enforced budgets and rate limits."
+---
+
+Toolken enforces spend caps and rate limits at the edge, before requests reach the provider — not as after-the-fact alerts. When a budget is exceeded the gateway returns `402 budget_exceeded`; when a rate limit is hit it returns `429 rate_limited`. Both responses follow the standard Toolken error body shape and require no changes to your application to handle gracefully.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

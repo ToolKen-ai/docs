@@ -1,0 +1,8 @@
+---
+title: "Budgets"
+description: "Set monthly, daily, or per-customer spend caps that the gateway enforces in real time."
+---
+
+Budgets are configured per-tenant in the Toolken dashboard and checked atomically on every request. When cumulative spend reaches the cap, the gateway immediately returns `402 budget_exceeded` — no further requests are forwarded to the provider until the budget resets or is raised. Budget windows, thresholds, and alert rules are all managed without code changes.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

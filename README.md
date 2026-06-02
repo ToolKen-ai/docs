@@ -1,55 +1,40 @@
-# Mintlify Starter Kit
+# Toolken Docs
 
-Use the starter kit to get your docs deployed and ready to customize.
+Product documentation for [Toolken](https://toolken.ai), built with [Mintlify](https://mintlify.com).
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+## Information Architecture
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+| Section | Pages |
+|---------|-------|
+| Get Started | What is Toolken, Quickstart, Auth, First Cost Report |
+| Attribution & Metadata | Overview, Headers Reference, Recipes, Per-Run & Per-Step |
+| Integrations | Choose Your Path, OpenClaw, Hermes, CrewAI, LangGraph, API Quickstart, OpenAI-Compat Clients |
+| Budgets & Limits | Overview, Budgets, Rate Limits |
+| Providers | Overview, BYOK, Model Routing |
+| Concepts | How It Works, Why Edge, Metadata Model, Pricing |
+| Troubleshooting | Error Codes, Cost Not Showing, FAQ |
+| API Reference | Introduction, Endpoints, Errors |
+| Cookbook | Overview |
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+## Local Preview
 
-## AI-assisted writing
-
-Set up your AI coding tool to work with Mintlify:
+Never run `npm` directly on the host. Use a throwaway Docker container:
 
 ```bash
-npx skills add https://mintlify.com/docs
+docker run --rm -it \
+  -v "$PWD":/docs \
+  -w /docs \
+  -p 3000:3000 \
+  node:20 \
+  npx -y mint@latest dev
 ```
 
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
+Then open http://localhost:3000.
 
-See the [AI tools guides](/ai-tools) for tool-specific setup.
+## Deployment
 
-## Development
+This directory (`docs/`) is mirrored to the **ToolKen-ai/docs** GitHub repository by `.github/workflows/docs-mirror.yml`. Mintlify deploys automatically from that repository on every push to `main`.
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
+## Logo & Favicon
 
-```
-npm i -g mint
-```
-
-Run the following command at the root of your documentation, where your `docs.json` is located:
-
-```
-mint dev
-```
-
-View your local preview at `http://localhost:3000`.
-
-## Publishing changes
-
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
-
-## Need help?
-
-### Troubleshooting
-
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+The `logo/` and `favicon.svg` files are placeholder SVGs. Replace with official Toolken brand assets when available.

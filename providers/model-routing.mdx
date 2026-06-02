@@ -1,0 +1,8 @@
+---
+title: "Model Routing"
+description: "How Toolken detects the target provider from the model name and request path."
+---
+
+Toolken automatically detects the target provider from the model name and request path on every inbound request — no provider selection header required. The gateway validates that the detected provider supports the requested endpoint (e.g. a request for a Claude model on `/v1/chat/completions` is rejected rather than silently forwarded to a non-existent endpoint) and routes to the correct upstream base URL from a hardcoded allowlist.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

@@ -1,0 +1,14 @@
+---
+title: "FAQ"
+description: "Frequently asked questions about Toolken."
+---
+
+**Does Toolken store my provider API keys?** No — your provider credentials are forwarded verbatim and never logged or stored. Only your `X-Toolken-Key` is retained (as a SHA-256 hash for lookup).
+
+**Does Toolken add latency?** The gateway runs as a Cloudflare Worker at the edge, typically adding 15–50 ms depending on geography and provider.
+
+**Which LLM providers are supported?** Toolken supports a wide range of providers. See the Providers section for the current list.
+
+**Can I use Toolken with streaming responses?** Yes — streaming is fully supported for all providers. Cost is captured at the end of the stream from the usage field in the final SSE chunk.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

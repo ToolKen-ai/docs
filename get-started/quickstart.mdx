@@ -1,0 +1,16 @@
+---
+title: "Quickstart"
+description: "Route your first LLM request through Toolken in under two minutes."
+---
+
+Point your OpenAI-compatible client at `https://gateway.toolken.ai` and add your `X-Toolken-Key` header — that's the entire integration. Your existing provider credentials (`Authorization: Bearer …` or `x-api-key: …`) pass through untouched to the upstream provider.
+
+```bash
+curl https://gateway.toolken.ai/v1/chat/completions \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -H "X-Toolken-Key: tk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

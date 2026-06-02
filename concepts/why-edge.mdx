@@ -1,0 +1,8 @@
+---
+title: "Why Edge?"
+description: "Why Toolken runs on Cloudflare Workers instead of a traditional server."
+---
+
+Running at the edge means the gateway executes in the same global network as your users — enforcement (budget caps, rate limits) happens before the request ever reaches an LLM provider, with latency measured in milliseconds rather than round-trip seconds. It also means zero infrastructure to manage: no servers, no scaling concerns, no cold starts. The Toolken gateway is stateless per request; state lives in edge-local Redis for budget and rate-limit counters.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

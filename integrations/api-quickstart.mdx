@@ -1,0 +1,25 @@
+---
+title: "API Quickstart"
+description: "Integrate Toolken using the OpenAI Python SDK, Node SDK, or raw curl."
+---
+
+Swap `base_url` to `https://gateway.toolken.ai` in any OpenAI-compatible SDK and add `X-Toolken-Key` as a default header. The example below also shows attaching a `X-Toolken-Feature` attribution header so spend is grouped by feature in the dashboard.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    default_headers={
+        "X-Toolken-Key": "tk_live_...",
+        "X-Toolken-Feature": "summarization",
+    },
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Summarize this document."}],
+)
+```
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

@@ -1,0 +1,8 @@
+---
+title: "Hermes"
+description: "Add Toolken spend tracking to Hermes-powered agents in minutes."
+---
+
+Hermes supports configurable LLM backends. Point Hermes at `https://gateway.toolken.ai/v1` as the base URL for any OpenAI-compatible provider and include `X-Toolken-Key` in your client configuration. Toolken's endpoints are under `/v1` — set your client's base URL to `https://gateway.toolken.ai/v1`; an incompatible path returns `incompatible_path` (400). Dynamic per-request metadata (e.g. agent name, session ID) can be injected via the `X-Toolken-Metadata` header (a JSON object, e.g. `{"agent": "planner", "session_id": "abc-123"}`) since the developer controls the request at that level.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

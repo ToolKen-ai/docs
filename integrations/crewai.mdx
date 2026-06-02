@@ -1,0 +1,8 @@
+---
+title: "CrewAI"
+description: "Track cost per crew, agent, and task in CrewAI with a base-URL swap."
+---
+
+In CrewAI, configure your LLM (e.g. `ChatOpenAI`) with `base_url="https://gateway.toolken.ai/v1"` and `default_headers={"X-Toolken-Key": "tk_live_..."}`. Toolken's endpoints are under `/v1` — set your client's base URL to `https://gateway.toolken.ai/v1`; an incompatible path returns `incompatible_path` (400). Because the developer controls the LLM client instantiation, dynamic per-request metadata works today via the `X-Toolken-Metadata` header (a JSON object, e.g. `{"run_id": "abc-123"}`) passed at the call site — no framework-level plugin required.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

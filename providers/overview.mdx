@@ -1,0 +1,8 @@
+---
+title: "Providers Overview"
+description: "Toolken supports a wide range of LLM providers through a single gateway endpoint."
+---
+
+Toolken's gateway supports 13 LLM providers: openai, anthropic, groq, mistral, deepseek, together, minimax, gemini, xai, openrouter, cerebras, fireworks, and perplexity. Provider selection uses the `X-Provider` header when set; otherwise the provider is inferred from the model name. An unrecognized model name returns an error asking you to supply the `X-Provider` header explicitly. All providers use the BYOK (Bring Your Own Key) model: you supply your own provider credentials, which are forwarded to the upstream provider untouched. See the [BYOK page](/providers/byok) for details on how credentials are handled.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

@@ -1,0 +1,21 @@
+---
+title: "API Errors"
+description: "Gateway error response format and all error codes."
+---
+
+When the gateway cannot forward your request, it returns a JSON error body in the following shape:
+
+```json
+{
+  "error": {
+    "message": "Human-readable description of the error.",
+    "type": "proxy_error",
+    "param": null,
+    "code": "error_code_slug"
+  }
+}
+```
+
+For the full list of status codes and `code` values, see the [Error Codes](/troubleshooting/error-codes) reference in the Troubleshooting section.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

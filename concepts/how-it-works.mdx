@@ -1,0 +1,8 @@
+---
+title: "How It Works"
+description: "The request lifecycle through the Toolken edge gateway."
+---
+
+Every request flows: your client → Toolken edge gateway (auth check, budget check, rate-limit check) → upstream LLM provider → response streamed back through the gateway. During the response the gateway captures token usage and cost, strips internal headers, and asynchronously ships a log event to the analytics backend — adding no meaningful latency to the response path. The entire processing layer runs as a Cloudflare Worker at the edge, physically close to your users.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

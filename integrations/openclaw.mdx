@@ -1,0 +1,8 @@
+---
+title: "OpenClaw"
+description: "Route all OpenClaw agent LLM calls through Toolken with a single config change."
+---
+
+OpenClaw's LLM client accepts a custom base URL and extra headers. Set `base_url` to `https://gateway.toolken.ai/v1` and add `X-Toolken-Key` to the client's default headers — every call from every agent is then tracked automatically. You can inject dynamic per-request metadata by passing an `X-Toolken-Metadata` header with a JSON value (e.g. `{"run_id": "abc-123"}`) directly at the call site since you control the request.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

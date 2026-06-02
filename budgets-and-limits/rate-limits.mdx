@@ -1,0 +1,8 @@
+---
+title: "Rate Limits"
+description: "Cap requests per second or per minute to protect against traffic spikes."
+---
+
+Rate limits in Toolken are enforced via atomic Redis counters at the edge, before any provider call is made. When the limit is reached the gateway returns `429 rate_limited`. Limits can be configured globally per tenant or scoped to individual features or customers, giving you fine-grained control over who can make how many calls in a given window.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

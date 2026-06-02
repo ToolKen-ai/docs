@@ -1,0 +1,8 @@
+---
+title: "LangGraph"
+description: "Attribute LangGraph node-level LLM spend to features and customers."
+---
+
+LangGraph uses LangChain's chat model classes under the hood. Configure your `ChatOpenAI` (or equivalent) with `openai_api_base="https://gateway.toolken.ai/v1"` and add `X-Toolken-Key` to `default_headers`. Toolken's endpoints are under `/v1` — set your client's base URL to `https://gateway.toolken.ai/v1`; an incompatible path returns `incompatible_path` (400). Because the developer controls the model client, dynamic per-request metadata works today via the `X-Toolken-Metadata` header (a JSON object, e.g. `{"node_id": "summarize"}`) since you control the call site — no framework plugin required.
+
+<Note>This page is a stub — the full guide is coming soon.</Note>

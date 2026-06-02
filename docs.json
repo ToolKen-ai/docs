@@ -1,72 +1,125 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "Toolken",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#0284C7",
+    "light": "#38BDF8",
+    "dark": "#0369A1"
   },
   "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://app.toolken.ai"
+    }
+  },
   "navigation": {
     "tabs": [
       {
         "tab": "Guides",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "get-started/what-is-toolken",
+              "get-started/quickstart",
+              "get-started/auth",
+              "get-started/first-cost-report"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Attribution & Metadata",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "attribution/overview",
+              "attribution/headers-reference",
+              "attribution/recipes",
+              "attribution/per-run-step"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Integrations",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/components",
-              "essentials/reusable-snippets"
+              "integrations/choose-your-path"
             ]
           },
           {
-            "group": "Agent ready",
+            "group": "Agentic frameworks",
             "pages": [
-              "agent-ready/prompt",
-              "agent-ready/visibility",
-              "agent-ready/contextual",
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "integrations/openclaw",
+              "integrations/hermes",
+              "integrations/crewai",
+              "integrations/langgraph"
+            ]
+          },
+          {
+            "group": "API / Direct",
+            "pages": [
+              "integrations/api-quickstart",
+              "integrations/openai-compat-clients"
+            ]
+          },
+          {
+            "group": "Budgets & Limits",
+            "pages": [
+              "budgets-and-limits/overview",
+              "budgets-and-limits/budgets",
+              "budgets-and-limits/rate-limits"
+            ]
+          },
+          {
+            "group": "Providers",
+            "pages": [
+              "providers/overview",
+              "providers/byok",
+              "providers/model-routing"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/how-it-works",
+              "concepts/why-edge",
+              "concepts/metadata-model",
+              "concepts/pricing"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "troubleshooting/error-codes",
+              "troubleshooting/cost-not-showing",
+              "troubleshooting/faq"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "API",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/introduction",
+              "api-reference/endpoints",
+              "api-reference/errors"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Cookbook",
+        "groups": [
           {
-            "group": "Endpoint examples",
+            "group": "Cookbook",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "cookbook/overview"
             ]
           }
         ]
@@ -75,52 +128,28 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "GitHub",
+          "href": "https://github.com/ToolKen-ai",
+          "icon": "github"
         }
       ]
     }
   },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/ToolKen-ai"
     }
   }
 }
