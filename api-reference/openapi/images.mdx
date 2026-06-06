@@ -1,0 +1,115 @@
+---
+title: "Images"
+api: "POST https://gateway.toolken.ai/v1/images/generations"
+---
+
+Pass-through to the provider's images endpoint (generation, editing, variations). Request and response bodies follow the standard OpenAI Images API schema. The provider is inferred from the model name (e.g. `dall-e-3`, `gpt-image-1` route to OpenAI).
+
+<Note>
+Image requests pass through to your provider and work today. They are not yet counted toward your cost totals, because the Images API does not return token usage. Full cost tracking for images is coming soon.
+</Note>
+
+## Headers
+
+<ParamField header="X-Toolken-Key" type="string" required>
+  Your Toolken API key. Validated by the gateway and stripped before forwarding.
+</ParamField>
+<ParamField header="Authorization" type="string" required>
+  Your provider key in Bearer format (BYOK), e.g. `Bearer sk-...`. Forwarded untouched, never stored.
+</ParamField>
+<ParamField header="X-Toolken-Metadata" type="string">
+  Primary attribution channel. JSON object of key-value pairs (e.g. `{"agent":"research-agent","customer_id":"cust_abc"}`). Each key becomes a groupable dimension in the dashboard.
+</ParamField>
+<ParamField header="X-Toolken-Meta-*" type="string">
+  Flat-header shorthand. `X-Toolken-Meta-Agent: research-agent` writes metadata key `agent`. Equivalent to sending the same key in `X-Toolken-Metadata`.
+</ParamField>
+<ParamField header="X-Toolken-Feature" type="string">
+  Convenience alias. Writes the `feature` metadata key. Equivalent to `X-Toolken-Meta-Feature`.
+</ParamField>
+<ParamField header="X-Toolken-Customer-Id" type="string">
+  Convenience alias. Writes the `customer_id` metadata key at lowest priority. Metadata channel takes precedence when both are set.
+</ParamField>
+
+## Body
+
+<ParamField body="model" type="string" required>
+  Image model identifier (e.g. `dall-e-3`, `gpt-image-1`).
+</ParamField>
+<ParamField body="prompt" type="string" required>
+  Text description of the image to generate.
+</ParamField>
+<ParamField body="n" type="integer">
+  Number of images to generate. Defaults to 1.
+</ParamField>
+<ParamField body="size" type="string">
+  Image dimensions (e.g. `1024x1024`). Supported values depend on the model.
+</ParamField>
+
+## Response
+
+<ResponseField name="created" type="integer">Unix timestamp of when the request was processed.</ResponseField>
+<ResponseField name="data" type="array">Array of generated image objects. Each contains a `url` or `b64_json` field depending on the requested response format.</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://gateway.toolken.ai/v1/images/generations \
+  -H "X-Toolken-Key: tk_live_..." \
+  -H "Authorization: Bearer sk-..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "dall-e-3",
+    "prompt": "A bar chart showing LLM costs by feature",
+    "n": 1,
+    "size": "1024x1024"
+  }'
+```
+
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="sk-...",
+    default_headers={"X-Toolken-Key": "tk_live_..."},
+)
+client.images.generate(
+    model="dall-e-3",
+    prompt="A bar chart showing LLM costs by feature",
+    n=1,
+    size="1024x1024",
+)
+```
+
+```javascript Node
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://gateway.toolken.ai/v1",
+  apiKey: "sk-...",
+  defaultHeaders: { "X-Toolken-Key": "tk_live_..." },
+});
+await client.images.generate({
+  model: "dall-e-3",
+  prompt: "A bar chart showing LLM costs by feature",
+  n: 1,
+  size: "1024x1024",
+});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "created": 1715367049,
+  "data": [
+    {
+      "url": "https://oaidalleapiprodscus.blob.core.windows.net/private/..."
+    }
+  ]
+}
+```
+
+</ResponseExample>

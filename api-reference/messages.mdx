@@ -1,0 +1,10 @@
+---
+title: "Messages (Anthropic)"
+description: "POST /v1/messages — Anthropic-native Messages endpoint proxied through Toolken."
+---
+
+`POST https://gateway.toolken.ai/v1/messages`
+
+This endpoint proxies Anthropic's native Messages API. Use your Anthropic SDK with `base_url` set to `https://gateway.toolken.ai` (the SDK appends `/v1/messages` automatically) and include `X-Toolken-Key` alongside the standard `x-api-key` Anthropic credential header. All attribution headers are supported. See the [Headers reference](/api-reference/headers) for the full spec.
+
+<Note>This page is a stub — the full reference with request/response schema is coming soon.</Note>

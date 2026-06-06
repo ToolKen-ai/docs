@@ -1,0 +1,79 @@
+---
+title: "List Models"
+api: "GET https://gateway.toolken.ai/v1/models"
+---
+
+Pass-through to the provider's model list endpoint. When no `X-Provider` header is set, the gateway routes to OpenAI. Override with `X-Provider` to list models from a different provider.
+
+## Headers
+
+<ParamField header="X-Toolken-Key" type="string" required>
+  Your Toolken API key. Validated by the gateway and stripped before forwarding.
+</ParamField>
+<ParamField header="Authorization" type="string" required>
+  Your provider key in Bearer format (BYOK), e.g. `Bearer sk-...`. Forwarded untouched, never stored.
+</ParamField>
+<ParamField header="X-Provider" type="string">
+  Explicitly set the upstream provider (e.g. `openai`, `anthropic`, `gemini`, `mistral`). Optional -- the gateway defaults to OpenAI for this endpoint.
+</ParamField>
+
+## Response
+
+<ResponseField name="object" type="string">Always `list`.</ResponseField>
+<ResponseField name="data" type="array">Array of model objects. Each has `id`, `object` (`model`), `created` (Unix timestamp), and `owned_by`.</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://gateway.toolken.ai/v1/models \
+  -H "X-Toolken-Key: tk_live_..." \
+  -H "Authorization: Bearer sk-..."
+```
+
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="sk-...",
+    default_headers={"X-Toolken-Key": "tk_live_..."},
+)
+client.models.list()
+```
+
+```javascript Node
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://gateway.toolken.ai/v1",
+  apiKey: "sk-...",
+  defaultHeaders: { "X-Toolken-Key": "tk_live_..." },
+});
+await client.models.list();
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gpt-4o",
+      "object": "model",
+      "created": 1715367049,
+      "owned_by": "openai"
+    },
+    {
+      "id": "gpt-4o-mini",
+      "object": "model",
+      "created": 1715368132,
+      "owned_by": "openai"
+    }
+  ]
+}
+```
+
+</ResponseExample>

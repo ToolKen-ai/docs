@@ -1,0 +1,958 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Toolken Gateway API",
+    "version": "1.0.0",
+    "description": "The Toolken gateway is a pass-through proxy that adds cost attribution, budget enforcement, and rate limiting to any OpenAI-compatible or Anthropic request. You bring your own provider keys (BYOK). The gateway URL is a drop-in replacement for the provider base URL."
+  },
+  "servers": [
+    {
+      "url": "https://gateway.toolken.ai",
+      "description": "Production. Anthropic requests go to this same host -- the SDK appends /v1/messages automatically."
+    }
+  ],
+  "security": [
+    {
+      "ToolkenKey": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Gateway API",
+      "description": "All endpoints are transparent pass-throughs to the upstream provider. The gateway validates your Toolken key, checks budgets, records attribution metadata, then forwards the request verbatim and streams the response back. Request and response bodies follow the provider's standard schema."
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ToolkenKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Toolken-Key",
+        "description": "Your Toolken API key. Required on every request. Validated by the gateway and stripped before forwarding to the provider."
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "description": "OpenAI-compatible error shape returned by the gateway for all proxy-level errors.",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["message", "type", "param", "code"],
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "Human-readable description of the error.",
+                "example": "Monthly budget exceeded"
+              },
+              "type": {
+                "type": "string",
+                "description": "Always 'proxy_error' for gateway-generated errors; 'provider_error' for sanitized upstream errors.",
+                "example": "proxy_error"
+              },
+              "param": {
+                "type": ["string", "null"],
+                "description": "Always null for gateway errors.",
+                "example": null
+              },
+              "code": {
+                "type": "string",
+                "description": "Machine-readable error code. See the Errors reference for the full list.",
+                "example": "budget_exceeded"
+              }
+            }
+          }
+        }
+      },
+      "ChatCompletionRequest": {
+        "type": "object",
+        "required": ["model", "messages"],
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Model identifier. The gateway infers the provider from the model name prefix (e.g. gpt-*, o1-*, claude-*, gemini-*). Override with X-Provider if needed.",
+            "example": "gpt-4o"
+          },
+          "messages": {
+            "type": "array",
+            "description": "Conversation history. Follows the standard OpenAI messages schema.",
+            "items": {
+              "type": "object",
+              "required": ["role", "content"],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": ["system", "user", "assistant"],
+                  "example": "user"
+                },
+                "content": {
+                  "type": "string",
+                  "example": "How much does GPT-4o cost per token?"
+                }
+              }
+            }
+          },
+          "stream": {
+            "type": "boolean",
+            "description": "If true, the gateway streams Server-Sent Events back from the provider.",
+            "example": true
+          },
+          "max_tokens": {
+            "type": "integer",
+            "description": "Maximum tokens to generate. The gateway enforces an upper cap configured per workspace.",
+            "example": 1024
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Sampling temperature. Forwarded verbatim to the provider.",
+            "example": 0.7
+          }
+        }
+      },
+      "ChatCompletionResponse": {
+        "type": "object",
+        "description": "Standard OpenAI chat completion response. The gateway forwards the provider response verbatim.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "chatcmpl-abc123"
+          },
+          "object": {
+            "type": "string",
+            "example": "chat.completion"
+          },
+          "model": {
+            "type": "string",
+            "example": "gpt-4o"
+          },
+          "choices": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": { "type": "integer", "example": 0 },
+                "message": {
+                  "type": "object",
+                  "properties": {
+                    "role": { "type": "string", "example": "assistant" },
+                    "content": { "type": "string", "example": "GPT-4o costs $2.50 per million input tokens." }
+                  }
+                },
+                "finish_reason": { "type": "string", "example": "stop" }
+              }
+            }
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "prompt_tokens": { "type": "integer", "example": 14 },
+              "completion_tokens": { "type": "integer", "example": 12 },
+              "total_tokens": { "type": "integer", "example": 26 }
+            }
+          }
+        }
+      },
+      "AnthropicMessageRequest": {
+        "type": "object",
+        "required": ["model", "messages", "max_tokens"],
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Anthropic model identifier. Must begin with 'claude-'. The gateway routes /v1/messages to Anthropic automatically.",
+            "example": "claude-opus-4-5"
+          },
+          "messages": {
+            "type": "array",
+            "description": "Conversation turns. Follows the standard Anthropic Messages schema.",
+            "items": {
+              "type": "object",
+              "required": ["role", "content"],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": ["user", "assistant"],
+                  "example": "user"
+                },
+                "content": {
+                  "type": "string",
+                  "example": "Summarize the Toolken pricing model."
+                }
+              }
+            }
+          },
+          "max_tokens": {
+            "type": "integer",
+            "description": "Required by Anthropic. The gateway enforces an upper cap configured per workspace.",
+            "example": 1024
+          },
+          "system": {
+            "type": "string",
+            "description": "System prompt. Forwarded verbatim to Anthropic.",
+            "example": "You are a helpful assistant."
+          },
+          "stream": {
+            "type": "boolean",
+            "description": "If true, the gateway streams Server-Sent Events back from Anthropic.",
+            "example": false
+          }
+        }
+      },
+      "AnthropicMessageResponse": {
+        "type": "object",
+        "description": "Standard Anthropic Messages response. The gateway forwards the provider response verbatim.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "msg_abc123"
+          },
+          "type": {
+            "type": "string",
+            "example": "message"
+          },
+          "role": {
+            "type": "string",
+            "example": "assistant"
+          },
+          "model": {
+            "type": "string",
+            "example": "claude-opus-4-5"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "example": "text" },
+                "text": { "type": "string", "example": "Toolken charges per token proxied..." }
+              }
+            }
+          },
+          "stop_reason": {
+            "type": "string",
+            "example": "end_turn"
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "input_tokens": { "type": "integer", "example": 11 },
+              "output_tokens": { "type": "integer", "example": 32 }
+            }
+          }
+        }
+      },
+      "EmbeddingRequest": {
+        "type": "object",
+        "required": ["model", "input"],
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Embedding model identifier (e.g. text-embedding-3-small).",
+            "example": "text-embedding-3-small"
+          },
+          "input": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } }
+            ],
+            "description": "Text or array of texts to embed. Forwarded verbatim to the provider.",
+            "example": "The gateway tracks costs per feature."
+          },
+          "encoding_format": {
+            "type": "string",
+            "enum": ["float", "base64"],
+            "example": "float"
+          }
+        }
+      },
+      "EmbeddingResponse": {
+        "type": "object",
+        "description": "Standard OpenAI embeddings response. Forwarded verbatim from the provider.",
+        "properties": {
+          "object": { "type": "string", "example": "list" },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "object": { "type": "string", "example": "embedding" },
+                "index": { "type": "integer", "example": 0 },
+                "embedding": {
+                  "type": "array",
+                  "items": { "type": "number" },
+                  "example": [0.0023, -0.0098, 0.0156]
+                }
+              }
+            }
+          },
+          "model": { "type": "string", "example": "text-embedding-3-small" },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "prompt_tokens": { "type": "integer", "example": 8 },
+              "total_tokens": { "type": "integer", "example": 8 }
+            }
+          }
+        }
+      },
+      "ResponsesRequest": {
+        "type": "object",
+        "required": ["model", "input"],
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Model identifier for the OpenAI Responses API.",
+            "example": "gpt-4o"
+          },
+          "input": {
+            "description": "Input text or structured input. Follows the standard OpenAI Responses schema.",
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "object" } }
+            ],
+            "example": "What is the capital of France?"
+          },
+          "stream": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "ModelsListResponse": {
+        "type": "object",
+        "description": "Standard OpenAI model list response. Forwarded verbatim from the provider.",
+        "properties": {
+          "object": { "type": "string", "example": "list" },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string", "example": "gpt-4o" },
+                "object": { "type": "string", "example": "model" },
+                "created": { "type": "integer", "example": 1715367049 },
+                "owned_by": { "type": "string", "example": "openai" }
+              }
+            }
+          }
+        }
+      },
+      "AudioRequest": {
+        "type": "object",
+        "required": ["model"],
+        "description": "Audio request body. Follows the standard OpenAI Audio API schema for speech, transcription, or translation.",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Audio model identifier (e.g. tts-1, whisper-1).",
+            "example": "tts-1"
+          }
+        }
+      },
+      "ImagesRequest": {
+        "type": "object",
+        "required": ["model", "prompt"],
+        "description": "Image generation request. Follows the standard OpenAI Images API schema.",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Image model identifier (e.g. dall-e-3, gpt-image-1).",
+            "example": "dall-e-3"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Text description of the image to generate.",
+            "example": "A bar chart showing LLM costs by feature"
+          },
+          "n": {
+            "type": "integer",
+            "example": 1
+          },
+          "size": {
+            "type": "string",
+            "example": "1024x1024"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "AuthorizationHeader": {
+        "name": "Authorization",
+        "in": "header",
+        "required": true,
+        "description": "Your provider's API key in Bearer format (e.g. `Bearer sk-...` for OpenAI). This is your BYOK credential -- the gateway forwards it verbatim and never stores it.",
+        "schema": { "type": "string", "example": "Bearer sk-proj-..." }
+      },
+      "XApiKeyHeader": {
+        "name": "x-api-key",
+        "in": "header",
+        "required": false,
+        "description": "Anthropic API key (e.g. `sk-ant-...`). Used instead of Authorization for Anthropic requests. The Anthropic SDK injects this automatically. Forwarded verbatim by the gateway.",
+        "schema": { "type": "string", "example": "sk-ant-api03-..." }
+      },
+      "ToolkenFeatureHeader": {
+        "name": "X-Toolken-Feature",
+        "in": "header",
+        "required": false,
+        "description": "Convenience alias. Writes the 'feature' metadata key. Equivalent to X-Toolken-Meta-Feature. Not a reserved dimension -- 'feature' is a regular metadata key stored alongside any other custom property.",
+        "schema": { "type": "string", "example": "chat" }
+      },
+      "ToolkenCustomerIdHeader": {
+        "name": "X-Toolken-Customer-Id",
+        "in": "header",
+        "required": false,
+        "description": "Convenience alias. Writes the 'customer_id' metadata key at the lowest priority. The metadata channel (X-Toolken-Metadata / X-Toolken-Meta-Customer-Id) takes precedence if also set. Not a reserved dimension.",
+        "schema": { "type": "string", "example": "cust_abc123" }
+      },
+      "ToolkenMetadataHeader": {
+        "name": "X-Toolken-Metadata",
+        "in": "header",
+        "required": false,
+        "description": "Primary attribution channel. JSON object of arbitrary key-value pairs. All keys surface as dimensions in the Toolken dashboard. Limits: up to 4096 bytes, up to 32 keys, and each key must match ^_?[a-z][a-z0-9_]{0,63}$. The reserved keys environment and session_id must be set via X-Toolken-Meta-Environment / X-Toolken-Meta-Session-Id headers instead of X-Toolken-Metadata. Invalid JSON is ignored silently with no error; a well-formed object that exceeds the size or key limits or uses an invalid key returns 422 invalid_metadata. Example: {\"agent\": \"research-agent\", \"customer_id\": \"cust_abc\"}.",
+        "schema": { "type": "string", "example": "{\"agent\": \"research-agent\", \"customer_id\": \"cust_abc\"}" }
+      },
+      "XProviderHeader": {
+        "name": "X-Provider",
+        "in": "header",
+        "required": false,
+        "description": "Explicitly set the upstream provider (e.g. 'openai', 'anthropic', 'gemini', 'mistral'). Optional -- the gateway infers the provider from the model name or path. Use this header when the model name is ambiguous.",
+        "schema": { "type": "string", "example": "openai" }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid API key.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "error": {
+                "message": "X-Toolken-Key header is required",
+                "type": "proxy_error",
+                "param": null,
+                "code": "missing_api_key"
+              }
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "Monthly spend budget exceeded for this workspace.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "error": {
+                "message": "Monthly budget exceeded",
+                "type": "proxy_error",
+                "param": null,
+                "code": "budget_exceeded"
+              }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Workspace is suspended.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "error": {
+                "message": "Tenant is not active",
+                "type": "proxy_error",
+                "param": null,
+                "code": "tenant_suspended"
+              }
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Rate limit or concurrent stream limit exceeded.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "error": {
+                "message": "Rate limit exceeded",
+                "type": "proxy_error",
+                "param": null,
+                "code": "rate_limited"
+              }
+            }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "Authentication service or tenant data temporarily unavailable. The gateway fails closed -- requests are never passed through unauthenticated.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "error": {
+                "message": "Authentication service temporarily unavailable",
+                "type": "proxy_error",
+                "param": null,
+                "code": "auth_unavailable"
+              }
+            }
+          }
+        }
+      },
+      "GatewayTimeout": {
+        "description": "The upstream provider did not respond within the timeout window.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "error": {
+                "message": "Request to provider timed out",
+                "type": "proxy_error",
+                "param": null,
+                "code": "gateway_timeout"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/v1/chat/completions": {
+      "post": {
+        "operationId": "chatCompletions",
+        "tags": ["Gateway API"],
+        "summary": "Chat Completions (Gateway)",
+        "description": "Pass-through to the provider's standard chat completions endpoint. The request and response bodies follow the OpenAI Chat Completions schema exactly. The gateway infers the provider from the model name prefix (e.g. `gpt-*` routes to OpenAI, `claude-*` routes to Anthropic via this path is not supported -- use /v1/messages for Anthropic). Override with `X-Provider` for ambiguous models.",
+        "parameters": [
+          { "$ref": "#/components/parameters/AuthorizationHeader" },
+          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataHeader" },
+          { "$ref": "#/components/parameters/XProviderHeader" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChatCompletionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful completion. Body follows the standard OpenAI Chat Completion object (or a stream of SSE events when stream: true).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ChatCompletionResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request -- invalid provider, incompatible path, or max_tokens exceeded.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "413": {
+            "description": "Request body exceeds the allowed size limit.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Attribution metadata in X-Toolken-Metadata is not valid JSON or contains invalid keys.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "502": {
+            "description": "Provider connection failed or response was too large.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" },
+          "504": { "$ref": "#/components/responses/GatewayTimeout" }
+        }
+      }
+    },
+    "/v1/messages": {
+      "post": {
+        "operationId": "anthropicMessages",
+        "tags": ["Gateway API"],
+        "summary": "Messages -- Anthropic (Gateway)",
+        "description": "Pass-through to Anthropic's Messages API. Requests to `/v1/messages` are automatically routed to Anthropic regardless of model name. Use your Anthropic SDK with `base_url` set to `https://gateway.toolken.ai` -- the SDK appends `/v1/messages` automatically. Include `x-api-key` (your Anthropic key) alongside `X-Toolken-Key`. Request and response bodies follow the Anthropic Messages schema exactly.",
+        "parameters": [
+          { "$ref": "#/components/parameters/XApiKeyHeader" },
+          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataHeader" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AnthropicMessageRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response. Body follows the standard Anthropic Message object (or a stream of SSE events when stream: true).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AnthropicMessageResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "413": {
+            "description": "Request body exceeds the allowed size limit.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Attribution metadata is invalid.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "502": {
+            "description": "Provider connection failed or response was too large.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" },
+          "504": { "$ref": "#/components/responses/GatewayTimeout" }
+        }
+      }
+    },
+    "/v1/embeddings": {
+      "post": {
+        "operationId": "embeddings",
+        "tags": ["Gateway API"],
+        "summary": "Embeddings (Gateway)",
+        "description": "Pass-through to the provider's embeddings endpoint. Request and response bodies follow the OpenAI Embeddings schema. The provider is inferred from the model name (e.g. `text-embedding-*` routes to OpenAI).",
+        "parameters": [
+          { "$ref": "#/components/parameters/AuthorizationHeader" },
+          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataHeader" },
+          { "$ref": "#/components/parameters/XProviderHeader" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EmbeddingRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Embedding vectors. Follows the standard OpenAI embeddings response.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EmbeddingResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "413": {
+            "description": "Request body exceeds the allowed size limit.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "422": {
+            "description": "Attribution metadata is invalid.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "502": {
+            "description": "Provider connection failed or response was too large.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" },
+          "504": { "$ref": "#/components/responses/GatewayTimeout" }
+        }
+      }
+    },
+    "/v1/responses": {
+      "post": {
+        "operationId": "responses",
+        "tags": ["Gateway API"],
+        "summary": "Responses (Gateway)",
+        "description": "Pass-through to the OpenAI Responses API (`/v1/responses`). Request and response bodies follow the standard OpenAI Responses schema. Provider is inferred from the model name.",
+        "parameters": [
+          { "$ref": "#/components/parameters/AuthorizationHeader" },
+          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataHeader" },
+          { "$ref": "#/components/parameters/XProviderHeader" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ResponsesRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response object. Follows the standard OpenAI Responses API schema.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "description": "Standard OpenAI Responses API response object. Shape depends on the model and input type." }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "413": {
+            "description": "Request body exceeds the allowed size limit.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "422": {
+            "description": "Attribution metadata is invalid.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "502": {
+            "description": "Provider connection failed or response was too large.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" },
+          "504": { "$ref": "#/components/responses/GatewayTimeout" }
+        }
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "operationId": "listModels",
+        "tags": ["Gateway API"],
+        "summary": "List Models (Gateway)",
+        "description": "Pass-through to the provider's model list endpoint. When no `X-Provider` header is set, the gateway routes to OpenAI. Override with `X-Provider` to list models from a different provider.",
+        "parameters": [
+          { "$ref": "#/components/parameters/AuthorizationHeader" },
+          { "$ref": "#/components/parameters/XProviderHeader" }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of available models from the provider.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ModelsListResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "400": {
+            "description": "Unknown or invalid provider.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" },
+          "504": { "$ref": "#/components/responses/GatewayTimeout" }
+        }
+      }
+    },
+    "/v1/audio": {
+      "post": {
+        "operationId": "audio",
+        "tags": ["Gateway API"],
+        "summary": "Audio (Gateway)",
+        "description": "Pass-through to the provider's audio endpoint (speech, transcription, translation). Request and response bodies follow the standard OpenAI Audio API schema. Provider is inferred from the model name (e.g. `tts-1`, `whisper-1` route to OpenAI).",
+        "parameters": [
+          { "$ref": "#/components/parameters/AuthorizationHeader" },
+          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataHeader" },
+          { "$ref": "#/components/parameters/XProviderHeader" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AudioRequest" }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "description": "Multipart form body for transcription/translation requests (Whisper). Follows the standard OpenAI Audio API schema."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Audio response. Shape depends on the endpoint (speech returns audio bytes; transcription/translation returns JSON). Forwarded verbatim from the provider.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "description": "Standard OpenAI Audio API response." }
+              },
+              "audio/mpeg": {
+                "schema": { "type": "string", "format": "binary" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "413": {
+            "description": "Request body exceeds the allowed size limit.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "422": {
+            "description": "Attribution metadata is invalid.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "502": {
+            "description": "Provider connection failed or response was too large.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" },
+          "504": { "$ref": "#/components/responses/GatewayTimeout" }
+        }
+      }
+    },
+    "/v1/images": {
+      "post": {
+        "operationId": "images",
+        "tags": ["Gateway API"],
+        "summary": "Images (Gateway)",
+        "description": "Pass-through to the provider's images endpoint (generation, editing, variations). Request and response bodies follow the standard OpenAI Images API schema. Provider is inferred from the model name (e.g. `dall-e-3`, `gpt-image-1` route to OpenAI).",
+        "parameters": [
+          { "$ref": "#/components/parameters/AuthorizationHeader" },
+          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataHeader" },
+          { "$ref": "#/components/parameters/XProviderHeader" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ImagesRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image generation response. Follows the standard OpenAI Images API response. Forwarded verbatim from the provider.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "description": "Standard OpenAI Images API response." }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "413": {
+            "description": "Request body exceeds the allowed size limit.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "422": {
+            "description": "Attribution metadata is invalid.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "502": {
+            "description": "Provider connection failed or response was too large.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
+            }
+          },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" },
+          "504": { "$ref": "#/components/responses/GatewayTimeout" }
+        }
+      }
+    }
+  }
+}

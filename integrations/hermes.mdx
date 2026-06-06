@@ -1,8 +1,32 @@
 ---
 title: "Hermes"
-description: "Add Toolken spend tracking to Hermes-powered agents in minutes."
+description: "Hermes can send requests to the Toolken gateway, but full attribution support is not available yet."
+icon: "bolt"
 ---
 
-Hermes supports configurable LLM backends. Point Hermes at `https://gateway.toolken.ai/v1` as the base URL for any OpenAI-compatible provider and include `X-Toolken-Key` in your client configuration. Toolken's endpoints are under `/v1` — set your client's base URL to `https://gateway.toolken.ai/v1`; an incompatible path returns `incompatible_path` (400). Dynamic per-request metadata (e.g. agent name, session ID) can be injected via the `X-Toolken-Metadata` header (a JSON object, e.g. `{"agent": "planner", "session_id": "abc-123"}`) since the developer controls the request at that level.
+Hermes can call the Toolken gateway as its LLM backend. However, Hermes does not attach custom headers to outbound requests today, so the `X-Toolken-Key` required to authenticate and attribute those requests never reaches the gateway.
 
-<Note>This page is a stub — the full guide is coming soon.</Note>
+<Warning>
+**Coming soon.** Full Hermes support is in progress. The steps below will not work until it ships.
+</Warning>
+
+## Why it does not work yet
+
+Toolken identifies your workspace from the `X-Toolken-Key` header on every request. Hermes currently sends only your provider key (as `Authorization: Bearer`) to the configured base URL. Its config accepts a `headers` field, but those values are silently dropped and never forwarded. Without `X-Toolken-Key`, the gateway cannot authenticate the request.
+
+## What is coming
+
+Toolken is adding server-side key management. Once it ships, you will point Hermes at the gateway with a single Toolken key -- Toolken handles provider routing and attribution on the server side with no custom headers required. The Hermes config will shrink to just a base URL and that one key.
+
+This page will be updated with a full step-by-step guide when support is ready.
+
+## Get notified
+
+Want this sooner? Reach out at [hello@toolken.ai](mailto:hello@toolken.ai) and we will let you know when Hermes support lands.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="OpenClaw" icon="claw-marks" href="/integrations/openclaw">OpenClaw forwards custom headers today -- the Toolken integration is fully working.</Card>
+  <Card title="Providers & Routing" icon="route" href="/features/providers-routing/overview">One gateway URL, 13 providers, your own keys.</Card>
+</CardGroup>

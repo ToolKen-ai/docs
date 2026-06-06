@@ -1,0 +1,146 @@
+---
+title: "Anthropic & Gemini"
+description: "Anthropic uses its native Messages API at /v1/messages. Gemini routes through the OpenAI-compatible endpoint and the gateway translates the request."
+icon: "sparkles"
+---
+
+Two providers with their own request surfaces. Both work through the same Toolken gateway URL; the difference is in how the SDK connects.
+
+## Anthropic
+
+Anthropic's SDK talks to `/v1/messages`, not `/v1/chat/completions`. The gateway supports the native Anthropic Messages API at that path.
+
+**Set the base URL to `https://gateway.toolken.ai`** (no `/v1` suffix). The Anthropic SDK appends `/v1/messages` automatically.
+
+<CodeGroup>
+```python Python
+import anthropic
+
+client = anthropic.Anthropic(
+    base_url="https://gateway.toolken.ai",  # SDK appends /v1/messages
+    api_key="sk-ant-...",                   # your Anthropic key, forwarded untouched
+    default_headers={
+        "X-Toolken-Key": "tk_live_...",
+    },
+)
+client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello"}],
+)
+```
+
+```javascript Node
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  baseURL: "https://gateway.toolken.ai", // SDK appends /v1/messages
+  apiKey: process.env.ANTHROPIC_API_KEY,  // forwarded untouched
+  defaultHeaders: {
+    "X-Toolken-Key": "tk_live_...",
+  },
+});
+await client.messages.create({
+  model: "claude-3-5-sonnet-20241022",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "Hello" }],
+});
+```
+
+```bash curl
+curl https://gateway.toolken.ai/v1/messages \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "X-Toolken-Key: tk_live_..." \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-3-5-sonnet-20241022",
+    "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "Hello"}]
+  }'
+```
+</CodeGroup>
+
+### Two keys for Anthropic
+
+| Key | Header | Who reads it |
+| --- | --- | --- |
+| Toolken key | `X-Toolken-Key: tk_live_...` | The gateway (stripped before forwarding) |
+| Anthropic key | `x-api-key: sk-ant-...` | Forwarded to Anthropic untouched |
+
+The Anthropic SDK injects `x-api-key` from its `api_key` parameter. Toolken reads `X-Toolken-Key` separately and forwards `x-api-key` unchanged.
+
+<Note>The Anthropic SDK also injects an `Authorization: Bearer` header in some versions. Toolken forwards it unchanged alongside `x-api-key`.</Note>
+
+### Provider detection for Anthropic
+
+Any request to `/v1/messages` routes to Anthropic automatically. A model name starting with `claude-` also triggers auto-detection to Anthropic. You do not need `X-Provider` for Anthropic unless you are sending to a path other than `/v1/messages`.
+
+---
+
+## Gemini
+
+Gemini has its own native API format, but you do not need to use it here. The gateway accepts a standard OpenAI-compatible request at `/v1/chat/completions`, translates it to Gemini's format, and maps the response back. You use the OpenAI SDK pointed at the Toolken gateway.
+
+Your Gemini API key goes in `Authorization: Bearer` (the OpenAI SDK convention). The gateway forwards it to Google as `x-goog-api-key`.
+
+<CodeGroup>
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="AIza...",  # your Gemini API key, forwarded untouched
+    default_headers={
+        "X-Toolken-Key": "tk_live_...",
+    },
+)
+client.chat.completions.create(
+    model="gemini-2.5-flash",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+```
+
+```javascript Node
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://gateway.toolken.ai/v1",
+  apiKey: process.env.GEMINI_API_KEY, // forwarded untouched
+  defaultHeaders: {
+    "X-Toolken-Key": "tk_live_...",
+  },
+});
+await client.chat.completions.create({
+  model: "gemini-2.5-flash",
+  messages: [{ role: "user", content: "Hello" }],
+});
+```
+
+```bash curl
+curl https://gateway.toolken.ai/v1/chat/completions \
+  -H "Authorization: Bearer $GEMINI_API_KEY" \
+  -H "X-Toolken-Key: tk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gemini-2.5-flash","messages":[{"role":"user","content":"Hello"}]}'
+```
+</CodeGroup>
+
+### How translation works
+
+The gateway rewrites the OpenAI-compatible request to Gemini's `generateContent` format before forwarding, and maps the response back to an OpenAI-compatible shape. You get a standard `chat.completions` response. The translation happens transparently.
+
+### Provider detection for Gemini
+
+Model names starting with `gemini-` are auto-detected. No `X-Provider` header needed.
+
+<Tip>There is no separate Gemini-native endpoint on the Toolken gateway. Use `/v1/chat/completions` with a `gemini-` model name.</Tip>
+
+---
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Providers Overview" icon="route" href="/features/providers-routing/overview">All 13 providers and the BYOK model.</Card>
+  <Card title="Choose a Provider" icon="sliders" href="/features/providers-routing/choose-provider">Detection order and when to use `X-Provider`.</Card>
+</CardGroup>

@@ -1,0 +1,158 @@
+---
+title: "OpenAI SDK"
+description: "Route OpenAI SDK calls through Toolken with one base URL change. No SDK swap, no redeploy."
+icon: "wand-magic-sparkles"
+---
+
+**One parameter change is all it takes.** Point the OpenAI SDK at `https://gateway.toolken.ai/v1`, add `X-Toolken-Key` as a default header, and every call the SDK makes is attributed and tracked in your dashboard.
+
+<Steps>
+
+<Step title="Get your keys">
+
+You need two keys:
+
+| Key | Where to get it | Looks like |
+| --- | --- | --- |
+| Toolken key | Dashboard, under API Keys | `tk_live_...` |
+| OpenAI key | Your OpenAI account | `sk-...` |
+
+Toolken forwards your OpenAI key to OpenAI verbatim and never stores it.
+
+</Step>
+
+<Step title="Configure the client">
+
+<CodeGroup>
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="sk-...",              # your OpenAI key, forwarded untouched
+    default_headers={
+        "X-Toolken-Key": "tk_live_...",
+        "X-Toolken-Meta-Agent": "my-agent",  # tag this client's traffic
+    },
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+print(response.choices[0].message.content)
+```
+
+```javascript Node
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://gateway.toolken.ai/v1",
+  apiKey: process.env.OPENAI_API_KEY,  // forwarded untouched
+  defaultHeaders: {
+    "X-Toolken-Key": "tk_live_...",
+    "X-Toolken-Meta-Agent": "my-agent",  // tag this client's traffic
+  },
+});
+
+const response = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello" }],
+});
+console.log(response.choices[0].message.content);
+```
+</CodeGroup>
+
+<Tip>`X-Toolken-Meta-Agent` takes any string. Use one value per agent or workflow you want to track separately in the dashboard. Any `X-Toolken-Meta-*` header becomes a groupable dimension automatically.</Tip>
+
+</Step>
+
+<Step title="Attribute by customer (optional)">
+
+Add `X-Toolken-Customer-Id` to track spend per end-user or organization:
+
+<CodeGroup>
+```python Python
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="sk-...",
+    default_headers={
+        "X-Toolken-Key": "tk_live_...",
+        "X-Toolken-Meta-Agent": "document-summarizer",
+        "X-Toolken-Meta-Customer-Id": "org_abc123",
+    },
+)
+```
+
+```javascript Node
+const client = new OpenAI({
+  baseURL: "https://gateway.toolken.ai/v1",
+  apiKey: process.env.OPENAI_API_KEY,
+  defaultHeaders: {
+    "X-Toolken-Key": "tk_live_...",
+    "X-Toolken-Meta-Agent": "document-summarizer",
+    "X-Toolken-Meta-Customer-Id": "org_abc123",
+  },
+});
+```
+</CodeGroup>
+
+Use any ID you already have: a user ID, an org slug, an account number. The value is recorded as-is and shows up as a grouping dimension in the dashboard.
+
+</Step>
+
+<Step title="See your cost">
+
+Within seconds your request appears in the dashboard, grouped by agent and customer. The response body is identical to calling OpenAI directly -- Toolken is a transparent proxy.
+
+</Step>
+
+</Steps>
+
+## Streaming
+
+The OpenAI SDK's streaming API works without any changes:
+
+<CodeGroup>
+```python Python
+with client.chat.completions.stream(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Count to five."}],
+) as stream:
+    for chunk in stream:
+        print(chunk.choices[0].delta.content or "", end="", flush=True)
+```
+
+```javascript Node
+const stream = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Count to five." }],
+  stream: true,
+});
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
+}
+```
+</CodeGroup>
+
+Token usage is captured from the final chunk and appears in the dashboard the same way as non-streaming calls.
+
+## How the two keys travel
+
+Toolken reads and strips its own `X-Toolken-*` headers before forwarding the request. Your OpenAI key travels in `Authorization: Bearer` -- exactly as it would when calling OpenAI directly.
+
+| Header | Who reads it | What happens after |
+| --- | --- | --- |
+| `X-Toolken-Key: tk_live_...` | Toolken gateway | Stripped before forwarding |
+| `Authorization: Bearer sk-...` | OpenAI | Forwarded untouched |
+| `X-Toolken-Meta-Agent: ...` | Toolken gateway | Recorded as metadata key `agent`, then stripped |
+| `X-Toolken-Meta-Customer-Id: ...` | Toolken gateway | Recorded as metadata key `customer_id`, then stripped |
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Custom Properties" icon="tag" href="/features/observability/custom-properties">All attribution headers and how metadata keys become dashboard dimensions.</Card>
+  <Card title="Anthropic SDK" icon="message" href="/integrations/anthropic-sdk">Use Claude models through Toolken with the Anthropic SDK.</Card>
+  <Card title="Gemini SDK" icon="sparkles" href="/integrations/gemini-sdk">Use Gemini models through Toolken via the OpenAI-compatible path.</Card>
+  <Card title="Providers Overview" icon="route" href="/features/providers-routing/overview">All supported providers and the BYOK model.</Card>
+</CardGroup>

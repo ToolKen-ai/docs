@@ -1,0 +1,113 @@
+---
+title: "Chat Completions"
+api: "POST https://gateway.toolken.ai/v1/chat/completions"
+---
+
+Pass-through to the provider's chat completions endpoint. Request and response bodies follow the standard OpenAI Chat Completions schema. The gateway infers the provider from the model name; override with `X-Provider`.
+
+## Headers
+
+<ParamField header="X-Toolken-Key" type="string" required>
+  Your Toolken API key. Validated by the gateway and stripped before forwarding.
+</ParamField>
+<ParamField header="Authorization" type="string" required>
+  Your provider key in Bearer format (BYOK), e.g. `Bearer sk-...`. Forwarded untouched, never stored.
+</ParamField>
+<ParamField header="X-Toolken-Metadata" type="string">
+  Primary attribution channel. JSON object of key-value pairs (e.g. `{"agent":"research-agent","customer_id":"cust_abc"}`). Each key becomes a groupable dimension in the dashboard.
+</ParamField>
+<ParamField header="X-Toolken-Meta-*" type="string">
+  Flat-header shorthand. `X-Toolken-Meta-Agent: research-agent` writes metadata key `agent`. Equivalent to sending the same key in `X-Toolken-Metadata`.
+</ParamField>
+<ParamField header="X-Toolken-Feature" type="string">
+  Convenience alias. Writes the `feature` metadata key. Equivalent to `X-Toolken-Meta-Feature`.
+</ParamField>
+<ParamField header="X-Toolken-Customer-Id" type="string">
+  Convenience alias. Writes the `customer_id` metadata key at lowest priority. Metadata channel takes precedence when both are set.
+</ParamField>
+
+## Body
+
+<ParamField body="model" type="string" required>
+  Model identifier (e.g. `gpt-4o`).
+</ParamField>
+<ParamField body="messages" type="array" required>
+  Conversation messages, following the standard OpenAI messages schema.
+</ParamField>
+<ParamField body="stream" type="boolean">
+  If true, the gateway streams Server-Sent Events back from the provider.
+</ParamField>
+<ParamField body="max_tokens" type="integer">
+  Maximum tokens to generate. Capped per workspace.
+</ParamField>
+<ParamField body="temperature" type="number">
+  Sampling temperature. Forwarded verbatim.
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="string">Unique completion ID.</ResponseField>
+<ResponseField name="object" type="string">Always `chat.completion`.</ResponseField>
+<ResponseField name="model" type="string">The model that produced the response.</ResponseField>
+<ResponseField name="choices" type="array">The generated choices, each with `message` and `finish_reason`.</ResponseField>
+<ResponseField name="usage" type="object">Token counts: `prompt_tokens`, `completion_tokens`, `total_tokens`.</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://gateway.toolken.ai/v1/chat/completions \
+  -H "X-Toolken-Key: tk_live_..." \
+  -H "Authorization: Bearer sk-..." \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-4o","messages":[{"role":"user","content":"Say hello in one sentence."}]}'
+```
+
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="sk-...",
+    default_headers={"X-Toolken-Key": "tk_live_..."},
+)
+client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Say hello in one sentence."}],
+)
+```
+
+```javascript Node
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://gateway.toolken.ai/v1",
+  apiKey: "sk-...",
+  defaultHeaders: { "X-Toolken-Key": "tk_live_..." },
+});
+await client.chat.completions.create({
+  model: "gpt-4o",
+  messages: [{ role: "user", content: "Say hello in one sentence." }],
+});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "model": "gpt-4o",
+  "choices": [
+    {
+      "index": 0,
+      "message": { "role": "assistant", "content": "Hello, how can I help you today?" },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": { "prompt_tokens": 14, "completion_tokens": 12, "total_tokens": 26 }
+}
+```
+
+</ResponseExample>

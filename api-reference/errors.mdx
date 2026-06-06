@@ -1,9 +1,11 @@
 ---
 title: "API Errors"
-description: "Gateway error response format and all error codes."
+description: "Gateway error response shape and every error code the gateway can return, grounded in the source."
 ---
 
-When the gateway cannot forward your request, it returns a JSON error body in the following shape:
+When the gateway itself cannot forward your request, it returns a JSON error body. Provider errors are sanitized and forwarded in the same shape.
+
+## Error body shape
 
 ```json
 {
@@ -16,6 +18,34 @@ When the gateway cannot forward your request, it returns a JSON error body in th
 }
 ```
 
-For the full list of status codes and `code` values, see the [Error Codes](/troubleshooting/error-codes) reference in the Troubleshooting section.
+| Field | Type | Description |
+|-------|------|-------------|
+| `message` | string | Human-readable description. |
+| `type` | string | `proxy_error` for gateway-generated errors. `provider_error` for sanitized upstream errors. |
+| `param` | null | Always null for gateway errors. |
+| `code` | string | Machine-readable slug. See the table below. |
 
-<Note>This page is a stub — the full guide is coming soon.</Note>
+## Error codes
+
+| HTTP status | Code | Meaning | What to do |
+|-------------|------|---------|------------|
+| 400 | `invalid_provider` | The `X-Provider` header value is not a recognized provider name. | Check the header value against the [supported providers list](/api-reference/overview#provider-detection). |
+| 400 | `incompatible_path` | The detected provider does not support the requested path (e.g. a Claude model sent to `/v1/chat/completions`, or an OpenAI model sent to `/v1/messages`). | Use the correct path for the provider: `/v1/chat/completions` for OpenAI-compatible providers, `/v1/messages` for Anthropic. |
+| 400 | `max_tokens_exceeded` | The `max_tokens` value in the request body exceeds the workspace cap configured in Toolken. | Lower `max_tokens` or increase the workspace cap in the Toolken dashboard. |
+| 401 | `missing_api_key` | The `X-Toolken-Key` header was not included in the request. | Add `X-Toolken-Key: <your-key>` to every request. |
+| 401 | `invalid_api_key` | The `X-Toolken-Key` value does not match any active API key in your workspace. | Verify the key is correct and has not been revoked in the Toolken dashboard. |
+| 402 | `budget_exceeded` | The monthly spend budget for your workspace has been reached. | Increase the budget in the Toolken dashboard or wait for the next billing cycle. |
+| 403 | `tenant_suspended` | Your workspace has been suspended. | Contact Toolken support. |
+| 413 | `payload_too_large` | The request body exceeds the allowed size limit. | Reduce the request body size. |
+| 422 | `invalid_metadata` | The metadata in `X-Toolken-Metadata` is valid JSON but contains an invalid key, or exceeds the size or key-count limit. | Use lowercase snake_case keys starting with a letter (up to 64 characters). Keep the object under 4 KB and 32 keys. |
+| 429 | `rate_limited` | The request rate limit for your workspace has been exceeded. | Implement exponential backoff and retry. |
+| 429 | `concurrent_stream_limit` | Too many simultaneous streaming requests are open for your workspace. | Close idle streams and retry. |
+| 502 | `provider_unreachable` | The gateway could not establish a connection to the upstream provider. | Retry with backoff. Check the provider status page. |
+| 502 | `response_too_large` | The provider response exceeded the gateway size limit. | Use streaming (`stream: true`) for large responses, or reduce `max_tokens`. |
+| 503 | `auth_unavailable` | The authentication service is temporarily unavailable. The gateway fails closed -- requests are never passed through unauthenticated. | Retry with backoff. |
+| 503 | `tenant_unavailable` | Workspace data could not be loaded. The gateway fails closed. | Retry with backoff. |
+| 504 | `gateway_timeout` | The upstream provider did not respond within the timeout window. | Retry with backoff. For large requests, consider streaming. |
+
+## Provider errors
+
+When the provider itself returns an error (e.g. 400 from OpenAI for an invalid model), the gateway sanitizes the response body -- stripping any credential echoes -- and forwards it in the same `{ error: { message, type, param, code } }` shape with `type: "provider_error"`. The HTTP status code from the provider is preserved.

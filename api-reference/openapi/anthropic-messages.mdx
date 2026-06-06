@@ -1,0 +1,125 @@
+---
+title: "Messages (Anthropic)"
+api: "POST https://gateway.toolken.ai/v1/messages"
+---
+
+Pass-through to Anthropic's Messages API. Requests to `/v1/messages` are automatically routed to Anthropic. Use your Anthropic SDK with `base_url` set to `https://gateway.toolken.ai` -- the SDK appends `/v1/messages` automatically.
+
+## Headers
+
+<ParamField header="X-Toolken-Key" type="string" required>
+  Your Toolken API key. Validated by the gateway and stripped before forwarding.
+</ParamField>
+<ParamField header="x-api-key" type="string" required>
+  Your Anthropic API key (e.g. `sk-ant-api03-...`). The Anthropic SDK injects this header automatically. Forwarded verbatim by the gateway, never stored.
+</ParamField>
+<ParamField header="X-Toolken-Metadata" type="string">
+  Primary attribution channel. JSON object of key-value pairs (e.g. `{"agent":"research-agent","customer_id":"cust_abc"}`). Each key becomes a groupable dimension in the dashboard.
+</ParamField>
+<ParamField header="X-Toolken-Meta-*" type="string">
+  Flat-header shorthand. `X-Toolken-Meta-Agent: research-agent` writes metadata key `agent`. Equivalent to sending the same key in `X-Toolken-Metadata`.
+</ParamField>
+<ParamField header="X-Toolken-Feature" type="string">
+  Convenience alias. Writes the `feature` metadata key. Equivalent to `X-Toolken-Meta-Feature`.
+</ParamField>
+<ParamField header="X-Toolken-Customer-Id" type="string">
+  Convenience alias. Writes the `customer_id` metadata key at lowest priority. Metadata channel takes precedence when both are set.
+</ParamField>
+
+## Body
+
+<ParamField body="model" type="string" required>
+  Anthropic model identifier. Must begin with `claude-` (e.g. `claude-opus-4-5`).
+</ParamField>
+<ParamField body="messages" type="array" required>
+  Conversation turns. Follows the standard Anthropic Messages schema. Each item has `role` (`user` or `assistant`) and `content`.
+</ParamField>
+<ParamField body="max_tokens" type="integer" required>
+  Maximum tokens to generate. Required by Anthropic. The gateway enforces an upper cap configured per workspace.
+</ParamField>
+<ParamField body="system" type="string">
+  System prompt. Forwarded verbatim to Anthropic.
+</ParamField>
+<ParamField body="stream" type="boolean">
+  If true, the gateway streams Server-Sent Events back from Anthropic.
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="string">Unique message ID (e.g. `msg_abc123`).</ResponseField>
+<ResponseField name="type" type="string">Always `message`.</ResponseField>
+<ResponseField name="role" type="string">Always `assistant`.</ResponseField>
+<ResponseField name="model" type="string">The Anthropic model that produced the response.</ResponseField>
+<ResponseField name="content" type="array">Array of content blocks. Each block has `type` (e.g. `text`) and `text`.</ResponseField>
+<ResponseField name="stop_reason" type="string">Reason generation stopped (e.g. `end_turn`).</ResponseField>
+<ResponseField name="usage" type="object">Token counts: `input_tokens` and `output_tokens`.</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://gateway.toolken.ai/v1/messages \
+  -H "X-Toolken-Key: tk_live_..." \
+  -H "x-api-key: sk-ant-api03-..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-opus-4-5",
+    "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "Summarize the Toolken pricing model."}]
+  }'
+```
+
+```python Python
+import anthropic
+
+client = anthropic.Anthropic(
+    api_key="sk-ant-api03-...",
+    base_url="https://gateway.toolken.ai",
+    default_headers={"X-Toolken-Key": "tk_live_..."},
+)
+client.messages.create(
+    model="claude-opus-4-5",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Summarize the Toolken pricing model."}],
+)
+```
+
+```javascript Node
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  apiKey: "sk-ant-api03-...",
+  baseURL: "https://gateway.toolken.ai",
+  defaultHeaders: { "X-Toolken-Key": "tk_live_..." },
+});
+await client.messages.create({
+  model: "claude-opus-4-5",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "Summarize the Toolken pricing model." }],
+});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "id": "msg_abc123",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-opus-4-5",
+  "content": [
+    {
+      "type": "text",
+      "text": "Toolken charges per token proxied through the gateway, with costs attributed by feature and customer."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 11,
+    "output_tokens": 32
+  }
+}
+```
+
+</ResponseExample>

@@ -1,0 +1,66 @@
+---
+title: "Continue"
+description: "Add Toolken as a model provider in Continue's config.yaml. Every AI request from your editor is attributed and visible in the dashboard."
+icon: "puzzle-piece"
+---
+
+**Continue supports per-model request headers in `config.yaml` -- add a Toolken model entry, set `requestOptions.headers`, and every Continue request is tracked with full cost and latency visibility.**
+
+<Steps>
+
+<Step title="Get your two keys">
+
+You need two keys:
+
+| Key | Where to get it | Looks like |
+| --- | --- | --- |
+| Toolken key | Dashboard, under API Keys | `tk_live_...` |
+| Provider key | Your OpenAI (or compatible) account | `sk-...` |
+
+Toolken forwards your provider key verbatim and never stores it.
+
+</Step>
+
+<Step title="Add the Toolken model to config.yaml">
+
+Open Continue's `config.yaml` (usually `~/.continue/config.yaml`) and add a model entry under `models`:
+
+```yaml
+models:
+  - name: Toolken GPT-4o mini
+    provider: openai
+    model: gpt-4o-mini
+    apiBase: https://gateway.toolken.ai/v1
+    apiKey: sk-...
+    requestOptions:
+      headers:
+        X-Toolken-Key: tk_live_...
+        X-Toolken-Meta-Agent: continue
+```
+
+`apiKey` is your provider key (BYOK). It is sent as `Authorization: Bearer` and forwarded untouched. `X-Toolken-Key` authenticates you to Toolken and is stripped before the request reaches your provider.
+
+<Tip>Set `X-Toolken-Meta-Agent` to any string that identifies this model in your dashboard. You can define multiple Toolken model entries with different `X-Toolken-Meta-Agent` values to break spend down by use case.</Tip>
+
+</Step>
+
+<Step title="Select the model in Continue">
+
+Open the Continue panel in your editor, switch to the `Toolken GPT-4o mini` model (or whatever you named it), and make a request. Continue attaches `X-Toolken-Key` and `X-Toolken-Meta-Agent` automatically via `requestOptions.headers`.
+
+</Step>
+
+<Step title="Confirm in your dashboard">
+
+Within seconds your request appears in the Toolken dashboard, grouped under the `continue` agent. Cost, token usage, and latency are all captured automatically.
+
+</Step>
+
+</Steps>
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Codex" icon="code" href="/integrations/codex">Route Codex CLI traffic through Toolken with a custom provider entry.</Card>
+  <Card title="Providers & Routing" icon="route" href="/features/providers-routing/overview">One gateway URL, 13 providers, your own keys.</Card>
+</CardGroup>

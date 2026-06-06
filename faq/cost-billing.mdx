@@ -1,0 +1,31 @@
+---
+title: "Cost & Billing"
+description: "How Toolken calculates LLM cost, what you pay, and what happens when you hit a budget."
+icon: "receipt"
+---
+
+Questions about cost tracking, budgets, and what you are charged for.
+
+<AccordionGroup>
+
+<Accordion title="How is LLM cost calculated?">
+Per token, using our pricing catalog. Input, output, and cached tokens are each multiplied by the model's price, and you see the per-request cost in the dashboard immediately after the request completes.
+</Accordion>
+
+<Accordion title="Does Toolken add to my provider bill?">
+No. You bring your own provider keys, so you pay your provider directly at their normal rates. Toolken does not mark up or touch your provider cost.
+</Accordion>
+
+<Accordion title="What about image and audio cost?">
+Image and audio requests pass through to your provider and work today, but are not yet counted toward your cost totals. Full cost tracking for them is coming soon.
+</Accordion>
+
+<Accordion title="What happens if I exceed my budget?">
+The gateway returns a `402 budget_exceeded` error and the request is not forwarded to your provider. Self-serve budget configuration is coming soon; today, caps are set with the Toolken team.
+</Accordion>
+
+<Accordion title="How much does Toolken cost? Is there a free tier?">
+See the [pricing page](https://toolken.ai/#pricing) for current plans and tiers.
+</Accordion>
+
+</AccordionGroup>

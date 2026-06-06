@@ -1,0 +1,108 @@
+---
+title: "Embeddings"
+api: "POST https://gateway.toolken.ai/v1/embeddings"
+---
+
+Pass-through to the provider's embeddings endpoint. Request and response bodies follow the OpenAI Embeddings schema. The provider is inferred from the model name (e.g. `text-embedding-*` routes to OpenAI).
+
+## Headers
+
+<ParamField header="X-Toolken-Key" type="string" required>
+  Your Toolken API key. Validated by the gateway and stripped before forwarding.
+</ParamField>
+<ParamField header="Authorization" type="string" required>
+  Your provider key in Bearer format (BYOK), e.g. `Bearer sk-...`. Forwarded untouched, never stored.
+</ParamField>
+<ParamField header="X-Toolken-Metadata" type="string">
+  Primary attribution channel. JSON object of key-value pairs (e.g. `{"agent":"research-agent","customer_id":"cust_abc"}`). Each key becomes a groupable dimension in the dashboard.
+</ParamField>
+<ParamField header="X-Toolken-Meta-*" type="string">
+  Flat-header shorthand. `X-Toolken-Meta-Agent: research-agent` writes metadata key `agent`. Equivalent to sending the same key in `X-Toolken-Metadata`.
+</ParamField>
+<ParamField header="X-Toolken-Feature" type="string">
+  Convenience alias. Writes the `feature` metadata key. Equivalent to `X-Toolken-Meta-Feature`.
+</ParamField>
+<ParamField header="X-Toolken-Customer-Id" type="string">
+  Convenience alias. Writes the `customer_id` metadata key at lowest priority. Metadata channel takes precedence when both are set.
+</ParamField>
+
+## Body
+
+<ParamField body="model" type="string" required>
+  Embedding model identifier (e.g. `text-embedding-3-small`).
+</ParamField>
+<ParamField body="input" type="string or array" required>
+  Text or array of texts to embed. Forwarded verbatim to the provider.
+</ParamField>
+<ParamField body="encoding_format" type="string">
+  Output format for the embedding vectors. Either `float` or `base64`.
+</ParamField>
+
+## Response
+
+<ResponseField name="object" type="string">Always `list`.</ResponseField>
+<ResponseField name="data" type="array">Array of embedding objects. Each has `object` (`embedding`), `index`, and `embedding` (array of floats).</ResponseField>
+<ResponseField name="model" type="string">The embedding model used.</ResponseField>
+<ResponseField name="usage" type="object">Token counts: `prompt_tokens` and `total_tokens`.</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://gateway.toolken.ai/v1/embeddings \
+  -H "X-Toolken-Key: tk_live_..." \
+  -H "Authorization: Bearer sk-..." \
+  -H "Content-Type: application/json" \
+  -d '{"model": "text-embedding-3-small", "input": "The gateway tracks costs per feature."}'
+```
+
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="sk-...",
+    default_headers={"X-Toolken-Key": "tk_live_..."},
+)
+client.embeddings.create(
+    model="text-embedding-3-small",
+    input="The gateway tracks costs per feature.",
+)
+```
+
+```javascript Node
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://gateway.toolken.ai/v1",
+  apiKey: "sk-...",
+  defaultHeaders: { "X-Toolken-Key": "tk_live_..." },
+});
+await client.embeddings.create({
+  model: "text-embedding-3-small",
+  input: "The gateway tracks costs per feature.",
+});
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "object": "list",
+  "data": [
+    {
+      "object": "embedding",
+      "index": 0,
+      "embedding": [0.0023, -0.0098, 0.0156]
+    }
+  ],
+  "model": "text-embedding-3-small",
+  "usage": {
+    "prompt_tokens": 8,
+    "total_tokens": 8
+  }
+}
+```
+
+</ResponseExample>

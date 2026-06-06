@@ -1,0 +1,158 @@
+---
+title: "Gemini SDK"
+description: "Use Google Gemini models through Toolken via the OpenAI-compatible endpoint. No separate Gemini SDK needed."
+icon: "sparkles"
+---
+
+**Gemini routes through Toolken's OpenAI-compatible endpoint.** Use the OpenAI SDK pointed at the Toolken gateway with a `gemini-` model name -- the gateway translates the request to Gemini's format and maps the response back. There is no separate Gemini-native endpoint on the Toolken gateway.
+
+<Note>There is no separate Gemini-native endpoint on the Toolken gateway. Send your request to `/v1/chat/completions` with a `gemini-` model name. The gateway handles the translation transparently.</Note>
+
+<Steps>
+
+<Step title="Get your keys">
+
+You need two keys:
+
+| Key | Where to get it | Looks like |
+| --- | --- | --- |
+| Toolken key | Dashboard, under API Keys | `tk_live_...` |
+| Gemini key | Google AI Studio | `AIza...` |
+
+Toolken forwards your Gemini key verbatim and never stores it.
+
+</Step>
+
+<Step title="Configure the client">
+
+Use the OpenAI SDK. Your Gemini key goes in `apiKey` / `api_key` and travels in `Authorization: Bearer` -- the gateway forwards it to Google untouched.
+
+<CodeGroup>
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="AIza...",             # your Gemini key, forwarded untouched
+    default_headers={
+        "X-Toolken-Key": "tk_live_...",
+        "X-Toolken-Meta-Agent": "my-agent",  # tag this client's traffic
+    },
+)
+
+response = client.chat.completions.create(
+    model="gemini-2.5-flash",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+print(response.choices[0].message.content)
+```
+
+```javascript Node
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://gateway.toolken.ai/v1",
+  apiKey: process.env.GEMINI_API_KEY,  // forwarded untouched
+  defaultHeaders: {
+    "X-Toolken-Key": "tk_live_...",
+    "X-Toolken-Meta-Agent": "my-agent",  // tag this client's traffic
+  },
+});
+
+const response = await client.chat.completions.create({
+  model: "gemini-2.5-flash",
+  messages: [{ role: "user", content: "Hello" }],
+});
+console.log(response.choices[0].message.content);
+```
+</CodeGroup>
+
+<Tip>Model names starting with `gemini-` are auto-detected. No extra header is needed to tell the gateway to route to Gemini.</Tip>
+
+</Step>
+
+<Step title="Attribute by customer (optional)">
+
+Add `X-Toolken-Customer-Id` to track spend per end-user or organization:
+
+<CodeGroup>
+```python Python
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="AIza...",
+    default_headers={
+        "X-Toolken-Key": "tk_live_...",
+        "X-Toolken-Meta-Agent": "research-pipeline",
+        "X-Toolken-Meta-Customer-Id": "org_abc123",
+    },
+)
+```
+
+```javascript Node
+const client = new OpenAI({
+  baseURL: "https://gateway.toolken.ai/v1",
+  apiKey: process.env.GEMINI_API_KEY,
+  defaultHeaders: {
+    "X-Toolken-Key": "tk_live_...",
+    "X-Toolken-Meta-Agent": "research-pipeline",
+    "X-Toolken-Meta-Customer-Id": "org_abc123",
+  },
+});
+```
+</CodeGroup>
+
+</Step>
+
+<Step title="See your cost">
+
+Within seconds your request appears in the dashboard, grouped by agent and customer. You receive a standard OpenAI-compatible response -- the translation is transparent.
+
+</Step>
+
+</Steps>
+
+## Streaming
+
+Streaming works the same way as with any OpenAI SDK call:
+
+<CodeGroup>
+```python Python
+with client.chat.completions.stream(
+    model="gemini-2.5-flash",
+    messages=[{"role": "user", "content": "Count to five."}],
+) as stream:
+    for chunk in stream:
+        print(chunk.choices[0].delta.content or "", end="", flush=True)
+```
+
+```javascript Node
+const stream = await client.chat.completions.create({
+  model: "gemini-2.5-flash",
+  messages: [{ role: "user", content: "Count to five." }],
+  stream: true,
+});
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
+}
+```
+</CodeGroup>
+
+## How translation works
+
+The gateway rewrites the OpenAI-compatible request body to Gemini's `generateContent` format before forwarding, and maps the response back to a standard `chat.completions` shape. Your Gemini key travels in `Authorization: Bearer` and the gateway forwards it to Google as `x-goog-api-key`.
+
+| Header | Who reads it | What happens after |
+| --- | --- | --- |
+| `X-Toolken-Key: tk_live_...` | Toolken gateway | Stripped before forwarding |
+| `Authorization: Bearer AIza...` | Toolken gateway | Forwarded to Google as `x-goog-api-key` |
+| `X-Toolken-Meta-Agent: ...` | Toolken gateway | Recorded as metadata key `agent`, then stripped |
+| `X-Toolken-Meta-Customer-Id: ...` | Toolken gateway | Recorded as metadata key `customer_id`, then stripped |
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Custom Properties" icon="tag" href="/features/observability/custom-properties">All attribution headers and how metadata keys become dashboard dimensions.</Card>
+  <Card title="OpenAI SDK" icon="wand-magic-sparkles" href="/integrations/openai-sdk">Use OpenAI models through Toolken with the same SDK setup.</Card>
+  <Card title="Anthropic SDK" icon="message" href="/integrations/anthropic-sdk">Use Claude models through Toolken with the Anthropic SDK.</Card>
+  <Card title="Anthropic and Gemini" icon="route" href="/features/providers-routing/anthropic-gemini">Provider routing details for Anthropic and Gemini.</Card>
+</CardGroup>

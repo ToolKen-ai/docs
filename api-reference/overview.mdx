@@ -1,0 +1,59 @@
+---
+title: "Gateway API Overview"
+description: "What the Toolken Gateway API is, how the base URL works, and how authentication works for OpenAI-compatible and Anthropic requests."
+---
+
+The Toolken Gateway API is a transparent pass-through proxy that sits between your application and the LLM provider. You point your existing SDK at the Toolken gateway URL instead of the provider URL -- everything else stays the same. The gateway adds cost attribution, budget enforcement, and usage recording without altering the request or response.
+
+## Base URL
+
+The base URL depends on which SDK you are using:
+
+| SDK / client | Base URL to configure | How the path is built |
+|---|---|---|
+| OpenAI SDK and compatible clients | `https://gateway.toolken.ai/v1` | The SDK appends the endpoint path (e.g. `/chat/completions`), giving a full path of `/v1/chat/completions`. |
+| Anthropic SDK | `https://gateway.toolken.ai` | The Anthropic SDK appends `/v1/messages` automatically, giving a full path of `/v1/messages`. |
+
+If you are sending raw HTTP requests, always include the full path: `https://gateway.toolken.ai/v1/chat/completions`, `https://gateway.toolken.ai/v1/messages`, etc. Provider routing is automatic based on the path and model name.
+
+## Two keys on every request
+
+Every request requires **two** credentials:
+
+| Key | Header | Purpose |
+|-----|--------|---------|
+| Toolken API key | `X-Toolken-Key` | Identifies your workspace to the gateway. Required on every request. |
+| Provider API key | `Authorization: Bearer sk-...` (OpenAI-style) or `x-api-key: sk-ant-...` (Anthropic) | Your BYOK credential forwarded verbatim to the upstream provider. The gateway never stores it. |
+
+The gateway validates `X-Toolken-Key`, then strips it before forwarding so the provider never sees it.
+
+## Supported endpoints
+
+| Path | Compatible schema | Notes |
+|------|------------------|-------|
+| `POST /v1/chat/completions` | OpenAI Chat Completions | Routes to OpenAI, Gemini, Mistral, DeepSeek, and others based on model name |
+| `POST /v1/messages` | Anthropic Messages | Always routed to Anthropic |
+| `POST /v1/embeddings` | OpenAI Embeddings | Routes by model prefix |
+| `POST /v1/responses` | OpenAI Responses | Routes by model name |
+| `GET /v1/models` | OpenAI Models list | Defaults to OpenAI; override with `X-Provider` |
+| `POST /v1/audio` | OpenAI Audio | Speech, transcription, translation |
+| `POST /v1/images` | OpenAI Images | Generation (DALL-E, GPT Image) |
+
+No endpoint is invented or proxied speculatively. Only the paths listed above are accepted.
+
+## Provider detection
+
+The gateway detects the upstream provider in this order:
+
+1. Explicit `X-Provider` header (e.g. `X-Provider: gemini`) -- always wins
+2. Path: `/v1/messages` always routes to Anthropic
+3. Model name prefix (e.g. `gpt-*`, `o1-*` to OpenAI; `claude-*` to Anthropic; `gemini-*` to Google)
+4. Error -- cannot determine provider; attach `X-Provider` or include a recognizable model name
+
+## Attribution headers
+
+Optional headers let you tag each request for cost breakdown in the Toolken dashboard. See [Headers](/api-reference/headers) for the full reference.
+
+## Errors
+
+When the gateway itself cannot forward the request (budget exceeded, invalid key, timeout, etc.) it returns a JSON error body in the standard OpenAI-compatible shape. See [Errors](/api-reference/errors) for the full list of codes.

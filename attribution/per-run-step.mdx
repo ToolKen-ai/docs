@@ -1,8 +1,0 @@
----
-title: "Per-Run & Per-Step Metadata"
-description: "Tracking agent run IDs and step-level costs — current status and roadmap."
----
-
-Associating a unique run ID or step identifier with each LLM call is a common need for agentic workloads. Native per-run / per-step enrichment at the framework level is currently under evaluation and coming soon. In the meantime, developers using CrewAI, LangGraph, or any OpenAI-compatible client can achieve this today by injecting per-request headers (e.g. `X-Toolken-Meta-Run-Id`) programmatically on each call, since the developer controls the request at that level.
-
-<Note>This page is a stub — the full guide is coming soon.</Note>

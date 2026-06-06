@@ -21,119 +21,140 @@
     }
   },
   "navigation": {
-    "tabs": [
+    "anchors": [
       {
-        "tab": "Guides",
+        "anchor": "Documentation",
+        "icon": "book-open",
         "groups": [
           {
-            "group": "Get Started",
+            "group": "Getting Started",
             "pages": [
-              "get-started/what-is-toolken",
+              "index",
               "get-started/quickstart",
-              "get-started/auth",
-              "get-started/first-cost-report"
+              "get-started/how-toolken-works",
+              "get-started/authentication"
             ]
           },
           {
-            "group": "Attribution & Metadata",
+            "group": "Observability",
             "pages": [
-              "attribution/overview",
-              "attribution/headers-reference",
-              "attribution/recipes",
-              "attribution/per-run-step"
+              "features/observability/overview",
+              "features/observability/custom-properties",
+              "features/observability/dimensions",
+              "features/observability/dashboard"
+            ]
+          },
+          {
+            "group": "Providers & Routing",
+            "pages": [
+              "features/providers-routing/overview",
+              "features/providers-routing/choose-provider",
+              "features/providers-routing/anthropic-gemini"
+            ]
+          },
+          {
+            "group": "Budgets & Rate Limits",
+            "pages": [
+              "features/budgets-rate-limits/budgets",
+              "features/budgets-rate-limits/rate-limits"
             ]
           },
           {
             "group": "Integrations",
             "pages": [
-              "integrations/choose-your-path"
+              {
+                "group": "Agent frameworks",
+                "pages": [
+                  "integrations/openclaw",
+                  "integrations/hermes",
+                  "integrations/crewai",
+                  "integrations/langgraph"
+                ]
+              },
+              {
+                "group": "Coding tools",
+                "pages": [
+                  "integrations/claude-code",
+                  "integrations/codex",
+                  "integrations/continue",
+                  "integrations/cursor"
+                ]
+              },
+              {
+                "group": "SDKs",
+                "pages": [
+                  "integrations/openai-sdk",
+                  "integrations/anthropic-sdk",
+                  "integrations/gemini-sdk"
+                ]
+              }
             ]
           },
           {
-            "group": "Agentic frameworks",
+            "group": "Use cases",
             "pages": [
-              "integrations/openclaw",
-              "integrations/hermes",
-              "integrations/crewai",
-              "integrations/langgraph"
-            ]
-          },
-          {
-            "group": "API / Direct",
-            "pages": [
-              "integrations/api-quickstart",
-              "integrations/openai-compat-clients"
-            ]
-          },
-          {
-            "group": "Budgets & Limits",
-            "pages": [
-              "budgets-and-limits/overview",
-              "budgets-and-limits/budgets",
-              "budgets-and-limits/rate-limits"
-            ]
-          },
-          {
-            "group": "Providers",
-            "pages": [
-              "providers/overview",
-              "providers/byok",
-              "providers/model-routing"
-            ]
-          },
-          {
-            "group": "Concepts",
-            "pages": [
-              "concepts/how-it-works",
-              "concepts/why-edge",
-              "concepts/metadata-model",
-              "concepts/pricing"
-            ]
-          },
-          {
-            "group": "Troubleshooting",
-            "pages": [
-              "troubleshooting/error-codes",
-              "troubleshooting/cost-not-showing",
-              "troubleshooting/faq"
+              "use-cases/cost-per-agent",
+              "use-cases/per-customer-cost",
+              "use-cases/compare-providers-by-cost",
+              "use-cases/cost-by-environment"
             ]
           }
         ]
       },
       {
-        "tab": "API Reference",
+        "anchor": "API Reference",
+        "icon": "code",
+        "openapi": "api-reference/openapi.json",
         "groups": [
           {
-            "group": "API",
+            "group": "Gateway API",
             "pages": [
-              "api-reference/introduction",
-              "api-reference/endpoints",
+              "api-reference/overview",
+              "api-reference/headers",
               "api-reference/errors"
             ]
+          },
+          {
+            "group": "AI Gateway",
+            "pages": [
+              "api-reference/openapi/chat-completions",
+              "api-reference/openapi/anthropic-messages",
+              "api-reference/openapi/responses",
+              "api-reference/openapi/embeddings",
+              "api-reference/openapi/audio",
+              "api-reference/openapi/images"
+            ]
+          },
+          {
+            "group": "Models",
+            "pages": [
+              "api-reference/openapi/list-models"
+            ]
+          },
+          {
+            "group": "Toolken API",
+            "pages": [
+              "api-reference/toolken-api"
+            ]
           }
         ]
       },
       {
-        "tab": "Cookbook",
+        "anchor": "FAQ",
+        "icon": "circle-question",
         "groups": [
           {
-            "group": "Cookbook",
+            "group": "FAQ",
             "pages": [
-              "cookbook/overview"
+              "faq/general",
+              "faq/cost-billing",
+              "faq/security-byok",
+              "faq/troubleshooting"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/ToolKen-ai",
-          "icon": "github"
-        }
-      ]
-    }
+    ]
   },
   "contextual": {
     "options": [

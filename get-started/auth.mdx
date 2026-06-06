@@ -1,8 +1,0 @@
----
-title: "Authentication"
-description: "How Toolken authenticates your requests and forwards your provider credentials."
----
-
-Every request to the Toolken gateway must carry an `X-Toolken-Key` header — this is Toolken's own authentication token, issued from your dashboard. Your upstream provider credentials (e.g. `Authorization: Bearer sk-…` for OpenAI-compatible providers, or `x-api-key: sk-ant-…` for Anthropic) are forwarded verbatim to the provider and are never stored by Toolken — this is the BYOK (Bring Your Own Key) model.
-
-<Note>This page is a stub — the full guide is coming soon.</Note>

@@ -1,8 +1,83 @@
 ---
 title: "CrewAI"
-description: "Track cost per crew, agent, and task in CrewAI with a base-URL swap."
+description: "Route every CrewAI agent call through Toolken. See cost, tokens, and latency per agent in your dashboard with no changes to your crew logic."
+icon: "users-gear"
 ---
 
-In CrewAI, configure your LLM (e.g. `ChatOpenAI`) with `base_url="https://gateway.toolken.ai/v1"` and `default_headers={"X-Toolken-Key": "tk_live_..."}`. Toolken's endpoints are under `/v1` — set your client's base URL to `https://gateway.toolken.ai/v1`; an incompatible path returns `incompatible_path` (400). Because the developer controls the LLM client instantiation, dynamic per-request metadata works today via the `X-Toolken-Metadata` header (a JSON object, e.g. `{"run_id": "abc-123"}`) passed at the call site — no framework-level plugin required.
+**Two lines of config and your entire crew is tracked.** Pass a `LLM` object built with Toolken's base URL and headers to each `Agent`, and every call is attributed and visible in your dashboard -- no monkey-patching, no plugins.
 
-<Note>This page is a stub — the full guide is coming soon.</Note>
+<Steps>
+
+<Step title="Get your two keys">
+
+You need two keys:
+
+| Key | Where to get it | Looks like |
+| --- | --- | --- |
+| Toolken key | Dashboard, under API Keys | `tk_live_...` |
+| Provider key | Your OpenAI account (or whichever provider you use) | `sk-...` |
+
+Toolken forwards your provider key to the upstream model provider untouched and never stores it.
+
+</Step>
+
+<Step title="Build the LLM object">
+
+Use CrewAI's built-in `LLM` class. Set `base_url` to Toolken's gateway and pass your Toolken key and agent name in `extra_headers`:
+
+```python
+from crewai import LLM
+
+llm = LLM(
+    model="gpt-4o-mini",
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="sk-...",          # your provider key (BYOK), forwarded untouched
+    extra_headers={
+        "X-Toolken-Key": "tk_live_...",
+        "X-Toolken-Meta-Agent": "research-agent",
+    },
+)
+```
+
+`X-Toolken-Meta-Agent` is the metadata key that groups this agent's spend in the dashboard. Use any string that is meaningful to you.
+
+</Step>
+
+<Step title="Pass the LLM to your agents">
+
+Hand the `llm` object to each `Agent` you create:
+
+```python
+from crewai import Agent
+
+researcher = Agent(
+    role="Research Analyst",
+    goal="Find and summarize the latest AI research.",
+    backstory="You are an expert at reading papers and extracting key findings.",
+    llm=llm,
+)
+```
+
+No other changes to your `Crew`, `Task`, or `Process` setup are needed.
+
+</Step>
+
+<Step title="Confirm in your dashboard">
+
+Run your crew. Within seconds, calls appear in the Toolken dashboard grouped under the `research-agent` agent. You can see cost, token usage, and latency for every request the agent made.
+
+</Step>
+
+</Steps>
+
+<Tip>
+Give each agent its own `LLM` instance with a distinct `X-Toolken-Meta-Agent` value to split spend per agent in the dashboard. For example, define one `LLM` for your researcher with `"X-Toolken-Meta-Agent": "research-agent"` and a separate one for your writer with `"X-Toolken-Meta-Agent": "writer-agent"`. The dashboard breaks cost and tokens down by agent so you can see exactly which agent is driving spend.
+</Tip>
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="LangGraph" icon="diagram-project" href="/integrations/langgraph">Connect LangGraph nodes to Toolken with a single model config.</Card>
+  <Card title="Custom Properties" icon="tag" href="/features/observability/custom-properties">Tag requests with feature, customer, and metadata headers to slice every metric.</Card>
+  <Card title="Providers & Routing" icon="route" href="/features/providers-routing/overview">One gateway URL, many providers, your own keys.</Card>
+</CardGroup>

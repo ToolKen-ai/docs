@@ -1,8 +1,0 @@
----
-title: "BYOK — Bring Your Own Key"
-description: "Your provider API keys are forwarded untouched — Toolken never stores them."
----
-
-Toolken operates on a strict BYOK model: your provider credentials (`Authorization: Bearer …` for OpenAI-compatible providers, `x-api-key: …` for Anthropic) are passed through to the upstream provider verbatim and are never logged or stored by Toolken. The only credential Toolken reads is your `X-Toolken-Key`, which is stripped before the request leaves the gateway.
-
-<Note>This page is a stub — the full guide is coming soon.</Note>

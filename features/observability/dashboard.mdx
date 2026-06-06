@@ -1,0 +1,68 @@
+---
+title: "Dashboard"
+description: "Five views out of the box: Overview, Cost, Usage, Performance, and Reliability. Each supports grouping and filtering by any dimension."
+icon: "gauge"
+---
+
+The dashboard surfaces everything Toolken records, organized into five views. You don't configure anything to see them. Data appears as soon as requests flow through the gateway.
+
+<Frame caption="The Overview page, showing account-level KPIs">
+  ![Toolken dashboard overview page](/images/dashboard-overview.png)
+</Frame>
+
+## The five views
+
+<CardGroup cols={2}>
+  <Card title="Overview" icon="house">
+    Account-level KPIs: total spend, request volume, token consumption, and error rate for the selected period. The starting point for a quick health check.
+  </Card>
+  <Card title="Cost" icon="dollar-sign">
+    Spend over time, broken down by any dimension. Group by model, provider, environment, or any metadata key (agent, customer, feature...) to see where money is going.
+  </Card>
+  <Card title="Usage" icon="hashtag">
+    Input, output, and cached token counts. Same group-by options as Cost. Useful for spotting which agents or customers drive token volume.
+  </Card>
+  <Card title="Performance" icon="gauge">
+    Latency and time to first token. Filter to a specific model or metadata tag to compare performance across them.
+  </Card>
+  <Card title="Reliability" icon="heart-pulse">
+    Error rates, status codes, and error types. Shows where requests are failing and which provider or agent is involved.
+  </Card>
+</CardGroup>
+
+## Group by any dimension
+
+Every view has a group-by control. Pick any built-in dimension or any metadata key you've sent:
+
+- `model` or `provider` are available on every request.
+- `environment` and `session_id` appear once you start sending `X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id`.
+- Any other metadata key (`agent`, `customer_id`, `feature`, `tier`, ...) appears as soon as you send it via `X-Toolken-Meta-*` or `X-Toolken-Metadata`.
+
+Switch the group-by and the chart re-renders. No page reload, no extra config.
+
+## Period selector
+
+Each view has a period selector. Choose Last 7 days, Last 30 days, or Last 90 days. The period applies to the chart, the summary numbers, and any group-by in that view.
+
+## Reliability: what you see
+
+The Reliability view shows:
+
+| Signal | What it tells you |
+| --- | --- |
+| Error rate | Share of requests that returned an error, over time. |
+| Status code breakdown | Which HTTP status codes your requests returned. |
+| Error type breakdown | Gateway errors vs. upstream provider errors, grouped by type. |
+
+Filter by any metadata key (agent, customer, feature) to see whether a specific part of your system is driving failures.
+
+## Nothing to configure
+
+The dashboard works from traffic alone. If a request carries no tags, it shows up under model and provider. Add any `X-Toolken-Meta-*` header and that metadata key appears in the group-by controls automatically.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Custom Properties" icon="tag" href="/features/observability/custom-properties">Add headers to tag requests and unlock every dimension.</Card>
+  <Card title="Dimensions & Filtering" icon="filter" href="/features/observability/dimensions">How grouping and filtering work across views.</Card>
+</CardGroup>

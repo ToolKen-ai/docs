@@ -1,0 +1,31 @@
+---
+title: "Overview"
+description: "See and slice your LLM metrics by agent, feature, or customer."
+icon: "chart-bar"
+---
+
+Toolken records every request that goes through the gateway. You see cost, token usage, latency, and error rates in one dashboard. Tag a request and you can break any of those down by agent, customer, environment, or any property you choose.
+
+## What you can measure
+<CardGroup cols={2}>
+  <Card title="Cost" icon="dollar-sign">What each request, agent, or customer spent.</Card>
+  <Card title="Usage" icon="hashtag">Input, output, and cached tokens.</Card>
+  <Card title="Performance" icon="gauge">Latency and time to first token.</Card>
+  <Card title="Reliability" icon="heart-pulse">Error rates and status codes.</Card>
+</CardGroup>
+
+## How it works
+You tag requests with metadata headers. Toolken turns each metadata key into a dimension you can group and filter by, across every metric above.
+
+```bash
+-H "X-Toolken-Meta-Agent: research-agent"
+```
+
+A request with no tags still shows up by model and provider. Tags add any breakdown you need on top.
+
+## Next
+<CardGroup cols={3}>
+  <Card title="Custom Properties" icon="tag" href="/features/observability/custom-properties">Tag requests so you can slice by them.</Card>
+  <Card title="Dimensions & filtering" icon="filter" href="/features/observability/dimensions">Group and filter any view.</Card>
+  <Card title="Dashboard" icon="gauge" href="/features/observability/dashboard">The views you get out of the box.</Card>
+</CardGroup>

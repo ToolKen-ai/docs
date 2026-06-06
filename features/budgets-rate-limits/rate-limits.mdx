@@ -1,0 +1,85 @@
+---
+title: "Rate Limits"
+description: "Per-workspace request-rate and concurrent-stream limits enforced at the edge. Requests that exceed the limit get a 429 before reaching your provider."
+icon: "gauge-high"
+---
+
+Toolken enforces two types of limits at the gateway, before a request reaches your provider.
+
+- **Request rate limit** - how many requests your workspace can send per minute.
+- **Concurrent stream limit** - how many streaming responses your workspace can hold open at once.
+
+<Warning>Self-serve rate limit configuration is coming soon. Limits today are set by the Toolken team. [Contact us](mailto:hello@toolken.ai) to adjust limits for your account.</Warning>
+
+## What you see when a limit is hit
+
+Both limits return an OpenAI-compatible error body.
+
+```json
+{
+  "error": {
+    "message": "Rate limit exceeded",
+    "type": "proxy_error",
+    "param": null,
+    "code": "rate_limited"
+  }
+}
+```
+
+<Table>
+  <Thead>
+    <Tr>
+      <Th>HTTP status</Th>
+      <Th>Error code</Th>
+      <Th>Meaning</Th>
+      <Th>What to do</Th>
+    </Tr>
+  </Thead>
+  <Tbody>
+    <Tr>
+      <Td>`429`</Td>
+      <Td>`rate_limited`</Td>
+      <Td>Request rate exceeded</Td>
+      <Td>Check the `Retry-After` header for the number of seconds to wait, then retry. Add backoff if you consistently hit this limit.</Td>
+    </Tr>
+    <Tr>
+      <Td>`429`</Td>
+      <Td>`concurrent_stream_limit`</Td>
+      <Td>Too many streaming responses open at once</Td>
+      <Td>Wait for open streams to complete before sending additional streaming requests. Consider reducing parallelism in agent loops.</Td>
+    </Tr>
+  </Tbody>
+</Table>
+
+When the request rate limit fires, the response includes a `Retry-After` header with the number of seconds until your window resets.
+
+## How enforcement works
+
+Both limits are checked at the edge before the request is forwarded. A request that exceeds either limit is rejected immediately with a `429`. An open streaming response counts against your concurrent limit until it finishes.
+
+<Note>If the enforcement backend is briefly unavailable, requests are allowed through rather than blocked. Toolken prioritizes availability over hard-blocking during transient disruptions.</Note>
+
+## Handling 429s in your code
+
+A `429` from Toolken is safe to retry. Read `Retry-After` and wait that many seconds before the next attempt. For agent loops that fire many parallel requests, add a concurrency limit on the client side to stay within the per-workspace ceiling.
+
+```python
+import time
+import openai
+
+def chat_with_retry(client, **kwargs):
+    for attempt in range(5):
+        try:
+            return client.chat.completions.create(**kwargs)
+        except openai.RateLimitError as e:
+            retry_after = int(e.response.headers.get("Retry-After", 5))
+            time.sleep(retry_after)
+    raise RuntimeError("Rate limit retries exhausted")
+```
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Budgets" icon="wallet" href="/features/budgets-rate-limits/budgets">Monthly spend caps enforced at the same edge layer.</Card>
+  <Card title="Observability" icon="chart-line" href="/features/observability/overview">Track request volume and spend before you hit a limit.</Card>
+</CardGroup>

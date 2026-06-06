@@ -1,8 +1,81 @@
 ---
 title: "LangGraph"
-description: "Attribute LangGraph node-level LLM spend to features and customers."
+description: "Route LangGraph node calls through Toolken. Attribute cost and tokens per node, graph, or feature with one model config change."
+icon: "diagram-project"
 ---
 
-LangGraph uses LangChain's chat model classes under the hood. Configure your `ChatOpenAI` (or equivalent) with `openai_api_base="https://gateway.toolken.ai/v1"` and add `X-Toolken-Key` to `default_headers`. Toolken's endpoints are under `/v1` — set your client's base URL to `https://gateway.toolken.ai/v1`; an incompatible path returns `incompatible_path` (400). Because the developer controls the model client, dynamic per-request metadata works today via the `X-Toolken-Metadata` header (a JSON object, e.g. `{"node_id": "summarize"}`) since you control the call site — no framework plugin required.
+**LangGraph nodes call a LangChain chat model -- configure that model once and every node that uses it is tracked.** Point `ChatOpenAI` at Toolken's gateway, add `X-Toolken-Key` to `default_headers`, and spend appears in your dashboard broken down by agent.
 
-<Note>This page is a stub — the full guide is coming soon.</Note>
+<Steps>
+
+<Step title="Get your two keys">
+
+You need two keys:
+
+| Key | Where to get it | Looks like |
+| --- | --- | --- |
+| Toolken key | Dashboard, under API Keys | `tk_live_...` |
+| Provider key | Your OpenAI account (or whichever provider you use) | `sk-...` |
+
+Toolken forwards your provider key to the upstream model provider untouched and never stores it.
+
+</Step>
+
+<Step title="Build the model">
+
+Use `ChatOpenAI` from `langchain_openai`. Set `base_url` to Toolken's gateway and pass your keys in `default_headers`:
+
+```python
+from langchain_openai import ChatOpenAI
+
+model = ChatOpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="sk-...",          # your provider key (BYOK), forwarded untouched
+    default_headers={
+        "X-Toolken-Key": "tk_live_...",
+        "X-Toolken-Meta-Agent": "research-agent",
+    },
+)
+```
+
+`X-Toolken-Meta-Agent` labels this model's traffic in the dashboard. Use any string that identifies the graph or workflow.
+
+</Step>
+
+<Step title="Use the model in your graph nodes">
+
+Pass `model` into whichever nodes call the LLM. A simple invoke pattern looks like:
+
+```python
+from langgraph.graph import StateGraph, MessagesState
+
+def call_model(state: MessagesState):
+    response = model.invoke(state["messages"])
+    return {"messages": response}
+
+builder = StateGraph(MessagesState)
+builder.add_node("agent", call_model)
+```
+
+No changes to your graph structure, edges, or state schema are needed.
+
+</Step>
+
+<Step title="Confirm in your dashboard">
+
+Run your graph. Within seconds, calls appear in the Toolken dashboard grouped under the `research-agent` agent. Cost, token usage, and latency are captured for every node invocation.
+
+</Step>
+
+</Steps>
+
+<Tip>
+To attribute spend per agent or per node, create one `ChatOpenAI` instance per logical role and give each a distinct `X-Toolken-Meta-Agent` value. For example, a `"planner-agent"` model and a `"summarizer-agent"` model each show up as separate line items in the dashboard, so you can see exactly which part of your graph is driving cost.
+</Tip>
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="CrewAI" icon="users-gear" href="/integrations/crewai">Configure Toolken for CrewAI agents with the built-in LLM class.</Card>
+  <Card title="Providers & Routing" icon="route" href="/features/providers-routing/overview">One gateway URL, many providers, your own keys.</Card>
+</CardGroup>

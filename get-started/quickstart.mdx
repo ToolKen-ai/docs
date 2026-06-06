@@ -1,16 +1,176 @@
 ---
 title: "Quickstart"
-description: "Route your first LLM request through Toolken in under two minutes."
+description: "Make your first attributed request through Toolken in under two minutes."
+icon: "rocket"
 ---
 
-Point your OpenAI-compatible client at `https://gateway.toolken.ai` and add your `X-Toolken-Key` header — that's the entire integration. Your existing provider credentials (`Authorization: Bearer …` or `x-api-key: …`) pass through untouched to the upstream provider.
+The only change to your code is the base URL. No SDK swap, no redeploy.
 
-```bash
+<Frame caption="Integrate in about two minutes: generate a key, point your base URL at Toolken, watch your first request land.">
+  <video
+    autoPlay
+    loop
+    muted
+    playsInline
+    className="w-full aspect-video rounded-xl"
+    src="/images/onboarding-demo.mp4"
+  />
+</Frame>
+
+<Steps>
+
+<Step title="Get your keys">
+
+You need two keys:
+
+| Key | Where to get it | Looks like |
+| --- | --- | --- |
+| Toolken key | Dashboard, under API Keys | `tk_live_...` |
+| Provider key | Your OpenAI or Anthropic account | `sk-...` / `sk-ant-...` |
+
+Toolken forwards your provider key untouched and never stores it.
+
+</Step>
+
+<Step title="Make a request">
+
+**Set the base URL, add `X-Toolken-Key`, and tag the call with a metadata header.**
+
+<CodeGroup>
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://gateway.toolken.ai/v1",
+    api_key="sk-...",  # your provider key, forwarded untouched
+    default_headers={
+        "X-Toolken-Key": "tk_live_...",
+        "X-Toolken-Meta-Agent": "research-agent",
+    },
+)
+client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+```
+
+```javascript Node
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://gateway.toolken.ai/v1",
+  apiKey: process.env.OPENAI_API_KEY, // forwarded untouched
+  defaultHeaders: {
+    "X-Toolken-Key": "tk_live_...",
+    "X-Toolken-Meta-Agent": "research-agent",
+  },
+});
+await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello" }],
+});
+```
+
+```go Go
+package main
+
+import (
+  "bytes"
+  "encoding/json"
+  "io"
+  "net/http"
+)
+
+func main() {
+  body, _ := json.Marshal(map[string]any{
+    "model":    "gpt-4o-mini",
+    "messages": []map[string]string{{"role": "user", "content": "Hello"}},
+  })
+
+  req, _ := http.NewRequest("POST", "https://gateway.toolken.ai/v1/chat/completions", bytes.NewReader(body))
+  req.Header.Set("Content-Type", "application/json")
+  req.Header.Set("Authorization", "Bearer sk-...")      // your provider key, forwarded untouched
+  req.Header.Set("X-Toolken-Key", "tk_live_...")
+  req.Header.Set("X-Toolken-Meta-Agent", "research-agent")
+
+  resp, _ := http.DefaultClient.Do(req)
+  defer resp.Body.Close()
+  io.ReadAll(resp.Body)
+}
+```
+
+```ruby Ruby
+require "openai"
+
+client = OpenAI::Client.new(
+  uri_base: "https://gateway.toolken.ai/v1/",
+  access_token: ENV["OPENAI_API_KEY"], # forwarded untouched
+  extra_headers: {
+    "X-Toolken-Key" => "tk_live_...",
+    "X-Toolken-Meta-Agent" => "research-agent",
+  },
+)
+client.chat(
+  parameters: {
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: "Hello" }],
+  },
+)
+```
+
+```bash curl
 curl https://gateway.toolken.ai/v1/chat/completions \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
   -H "X-Toolken-Key: tk_live_..." \
+  -H "X-Toolken-Meta-Agent: research-agent" \
   -H "Content-Type: application/json" \
   -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Hello"}]}'
 ```
+</CodeGroup>
 
-<Note>This page is a stub — the full guide is coming soon.</Note>
+<Tip>`X-Toolken-Meta-Agent` takes any string. Use one per agent, tool, or workflow you want costs for. Any `X-Toolken-Meta-*` header becomes a groupable dimension in the dashboard.</Tip>
+
+<Accordion title="How Toolken handles your headers">
+Toolken reads and strips its own `X-Toolken-*` headers before forwarding the request. Your provider auth is left completely untouched. For OpenAI-compatible providers, your key travels in `Authorization: Bearer`. For the Anthropic SDK, set the base URL to `https://gateway.toolken.ai` and the SDK appends `/v1/messages` automatically.
+</Accordion>
+
+<Accordion title="Expected response">
+The response body is identical to calling the provider directly. Toolken is a transparent proxy.
+
+```json
+{
+  "id": "chatcmpl-...",
+  "object": "chat.completion",
+  "model": "gpt-4o-mini",
+  "choices": [
+    {
+      "index": 0,
+      "message": { "role": "assistant", "content": "Hello! How can I help?" },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": { "prompt_tokens": 9, "completion_tokens": 9, "total_tokens": 18 }
+}
+```
+</Accordion>
+
+</Step>
+
+<Step title="See your cost">
+
+Within seconds your request appears, grouped by the `research-agent` agent tag.
+
+<Frame caption="Your tagged request, grouped by agent">
+  ![Tagged request cost in the Toolken dashboard](/images/quickstart-dashboard.png)
+</Frame>
+
+</Step>
+
+</Steps>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Cost Attribution" icon="chart-line" href="/features/observability/overview">Slice spend by agent, feature, and customer.</Card>
+  <Card title="Budgets" icon="shield-check" href="/features/budgets-rate-limits/budgets">Put a cap on spend that enforces at the edge.</Card>
+</CardGroup>

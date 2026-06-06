@@ -1,0 +1,76 @@
+---
+title: "Codex"
+description: "Route OpenAI Codex CLI traffic through Toolken by defining a custom provider in config.toml. Every request is attributed and visible in the dashboard."
+icon: "code"
+---
+
+**Codex CLI supports custom model providers in `~/.codex/config.toml` -- define a Toolken provider, select it, and every Codex request flows through the gateway with full cost tracking.**
+
+<Steps>
+
+<Step title="Get your two keys">
+
+You need two keys:
+
+| Key | Where to get it | Looks like |
+| --- | --- | --- |
+| Toolken key | Dashboard, under API Keys | `tk_live_...` |
+| Provider key | Your OpenAI account | `sk-...` |
+
+Toolken forwards your provider key verbatim and never stores it.
+
+</Step>
+
+<Step title="Add the Toolken provider to config.toml">
+
+Open (or create) `~/.codex/config.toml` and add the following:
+
+```toml
+model = "gpt-4o"
+model_provider = "toolken"
+
+[model_providers.toolken]
+name = "toolken"
+base_url = "https://gateway.toolken.ai/v1"
+env_key = "OPENAI_API_KEY"
+
+[model_providers.toolken.http_headers]
+X-Toolken-Key = "tk_live_..."
+X-Toolken-Meta-Agent = "codex"
+```
+
+`env_key` tells Codex which environment variable holds your provider key. That key is sent as `Authorization: Bearer` and forwarded to the provider untouched.
+
+<Tip>Keep `tk_live_...` in an environment variable too. You can reference it with `${TOOLKEN_KEY}` if your shell pre-processes the file, or store it directly in `config.toml` and keep the file out of version control.</Tip>
+
+</Step>
+
+<Step title="Set your provider key and run Codex">
+
+Export your OpenAI key, then run Codex as normal:
+
+```bash
+export OPENAI_API_KEY="sk-..."
+codex
+```
+
+Codex selects the `toolken` provider from `config.toml`, attaches `X-Toolken-Key` and `X-Toolken-Meta-Agent`, and routes the request through the gateway.
+
+</Step>
+
+<Step title="Confirm in your dashboard">
+
+Within seconds your request appears in the Toolken dashboard, grouped under the `codex` agent. Cost, token usage, and latency are all captured automatically.
+
+</Step>
+
+</Steps>
+
+<Note>Codex uses the OpenAI Responses API (`/v1/responses`). The Toolken gateway supports the Responses API natively, so the integration works without any server-side shim or protocol translation.</Note>
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Claude Code" icon="terminal" href="/integrations/claude-code">Route Claude Code traffic through Toolken with three environment variables.</Card>
+  <Card title="Continue" icon="puzzle-piece" href="/integrations/continue">Add Toolken as a model provider in Continue's config.yaml.</Card>
+</CardGroup>

@@ -1,0 +1,31 @@
+---
+title: "Security & BYOK"
+description: "How Toolken handles your provider keys, your data, and what BYOK means in practice."
+icon: "shield-check"
+---
+
+Toolken is built around a Bring Your Own Keys model. Here is what that means for your data and credentials.
+
+<AccordionGroup>
+
+<Accordion title="Do you store my provider API keys?">
+No. Your provider key is forwarded to the provider untouched and is never stored by Toolken.
+</Accordion>
+
+<Accordion title="Do you store my prompts and responses?">
+No. Toolken records request metadata only: model, provider, token counts, cost, latency, status, and the attribution tags you choose to send. Your prompt and completion text are not stored.
+</Accordion>
+
+<Accordion title="Is my data used to train models?">
+No.
+</Accordion>
+
+<Accordion title="How is my Toolken key secured?">
+It is stored only as a SHA-256 hash for lookup, validated on every request, and stripped before the request is forwarded to your provider.
+</Accordion>
+
+<Accordion title="What is BYOK?">
+Bring Your Own Keys. You supply your own provider key on each request; Toolken forwards it untouched and never retains it. You keep full control of your provider relationship and spend.
+</Accordion>
+
+</AccordionGroup>

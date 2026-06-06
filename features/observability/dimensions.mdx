@@ -1,0 +1,77 @@
+---
+title: "Dimensions & Filtering"
+description: "The built-in dimensions you can group and filter by, and how filtering works across every dashboard view."
+icon: "filter"
+---
+
+A dimension is any property Toolken can use to group or filter a metric. Every request has two built-in dimensions. Tag requests with metadata keys and those become dimensions too -- no schema to define upfront.
+
+## Built-in dimensions
+
+These are always available, on every request.
+
+| Dimension | Set by | Example values |
+| --- | --- | --- |
+| `model` | Detected automatically | `gpt-4o-mini`, `claude-3-5-sonnet-20241022` |
+| `provider` | Detected automatically | `openai`, `anthropic`, `openrouter` |
+
+## Reserved dimensions
+
+These two keys are always available for filtering and grouping, with consistent performance even when you have many distinct values.
+
+| Dimension | Header | Example values |
+| --- | --- | --- |
+| `environment` | `X-Toolken-Meta-Environment` | `production`, `staging`, `dev` |
+| `session_id` | `X-Toolken-Meta-Session-Id` | `sess_abc123` |
+
+Set them with `X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id`. They appear in the dashboard once you start sending them.
+
+## Custom dimensions
+
+Any safe key you send via `X-Toolken-Metadata` or `X-Toolken-Meta-*` becomes a dimension automatically. Keys must match `^_?[a-z][a-z0-9_]{0,63}$`, with a 4096-byte total metadata limit and up to 32 keys per request. The reserved keys `environment` and `session_id` are set via their dedicated headers (`X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id`) and cannot be sent through `X-Toolken-Metadata`. Common examples:
+
+| What you want to slice by | Header to send | Metadata key |
+| --- | --- | --- |
+| Agent name | `X-Toolken-Meta-Agent: research-agent` | `agent` |
+| Customer ID | `X-Toolken-Meta-Customer-Id: cust_acme` | `customer_id` |
+| Feature or workflow | `X-Toolken-Meta-Feature: report-gen` | `feature` |
+| Any other property | `X-Toolken-Meta-<Key>: <value>` | `<key>` |
+
+There is no list to register from. Send a key once and it shows up in the group-by control immediately.
+
+<Tip>Use `X-Toolken-Meta-Agent` to attribute spend per agent. Group by `agent` in the Cost view to see one cost line per agent name.</Tip>
+
+## How grouping works
+
+Pick a dimension in any dashboard view and the chart pivots to show one series per value. For example, grouping Cost by `agent` gives you one cost line per agent. Grouping Usage by `customer_id` gives you token consumption per customer.
+
+You can group by any built-in or reserved dimension, or any metadata key you've sent, across all views: Cost, Usage, Performance, and Reliability.
+
+<Frame caption="Cost grouped by agent, showing spend per agent">
+  ![Dashboard showing cost broken down by agent](/images/cost-by-feature.png)
+</Frame>
+
+## How filtering works
+
+Filtering narrows a view to a subset of requests before the aggregation happens. Select one or more values for any dimension and the view shows only matching requests.
+
+Filters compose: filtering by `agent = research-agent` and `environment = production` shows cost for that agent in production only. Filters apply to every metric in the active view.
+
+## Period selector
+
+Every view has a period selector. Available windows include Last 7 days, Last 30 days, and Last 90 days. The period applies to both charts and summary numbers.
+
+## Requests with no tags
+
+A request with no tags has `model` and `provider` only. It shows up under those dimensions. Tags add extra dimensions on top. Nothing is lost.
+
+## Adding a dimension you haven't sent yet
+
+Send the header once and it appears in the dashboard. There's no schema to define upfront. If you add `X-Toolken-Meta-Agent: batch-job` to a new workflow today, that value starts showing in your Cost view immediately.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Custom Properties" icon="tag" href="/features/observability/custom-properties">How to set the headers that create dimensions.</Card>
+  <Card title="Dashboard" icon="gauge" href="/features/observability/dashboard">The views available once dimensions are set.</Card>
+</CardGroup>

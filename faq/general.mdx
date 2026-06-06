@@ -1,0 +1,45 @@
+---
+title: "General"
+description: "Common questions about what Toolken is, how it works, and who it is for."
+icon: "circle-info"
+---
+
+Toolken is a managed LLM gateway. Here are answers to the most common questions about how it works.
+
+<AccordionGroup>
+
+<Accordion title="What is Toolken?">
+A managed LLM gateway on the edge. Point your client at one base URL and every call is attributed by feature, customer, and more, with budgets and rate limits enforced automatically. You bring your own provider keys.
+</Accordion>
+
+<Accordion title="Do I have to change my code?">
+No. Change one base URL to `https://gateway.toolken.ai/v1` and add an `X-Toolken-Key` header. The gateway is OpenAI-compatible, so the rest of your code stays the same.
+</Accordion>
+
+<Accordion title="Which providers and models are supported?">
+13 native providers are supported: OpenAI, Anthropic, Groq, Mistral, DeepSeek, Together, MiniMax, Gemini, xAI, OpenRouter, Cerebras, Fireworks, and Perplexity. Any OpenAI-compatible endpoint also works. OpenRouter unlocks a large additional catalog. Anthropic uses its own `/v1/messages` endpoint; Gemini is reached through the OpenAI-compatible endpoint.
+</Accordion>
+
+<Accordion title="Does it support images, audio, and embeddings?">
+Embeddings work and are cost-tracked like chat. Image and audio requests pass through to your provider and work today, but are not yet counted toward your cost totals. Cost tracking for them is coming soon.
+</Accordion>
+
+<Accordion title="How much latency does it add?">
+A single hop at the edge. The gateway runs on Cloudflare's edge network, close to your client, so the added latency is a small fraction of the total round trip to your provider.
+</Accordion>
+
+<Accordion title="What happens if the gateway has a problem?">
+Budgets and rate limits fail open, so a brief disruption lets requests through rather than blocking them. Authentication fails closed, so requests are never forwarded without a valid key.
+</Accordion>
+
+<Accordion title="Can I self-host Toolken?">
+No. Toolken is a managed gateway that runs on the edge. There is nothing for you to host.
+</Accordion>
+
+<Accordion title="How do I get help?">
+Email [hello@toolken.ai](mailto:hello@toolken.ai) and the team will get back to you.
+</Accordion>
+
+</AccordionGroup>
+
+Still have questions? Email [hello@toolken.ai](mailto:hello@toolken.ai).

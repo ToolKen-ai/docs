@@ -1,8 +1,109 @@
 ---
 title: "OpenClaw"
-description: "Route all OpenClaw agent LLM calls through Toolken with a single config change."
+description: "Point OpenClaw at Toolken by adding one custom provider. Every call from every agent is tracked automatically."
+icon: "claw-marks"
 ---
 
-OpenClaw's LLM client accepts a custom base URL and extra headers. Set `base_url` to `https://gateway.toolken.ai/v1` and add `X-Toolken-Key` to the client's default headers — every call from every agent is then tracked automatically. You can inject dynamic per-request metadata by passing an `X-Toolken-Metadata` header with a JSON value (e.g. `{"run_id": "abc-123"}`) directly at the call site since you control the request.
+**Add Toolken as a custom provider in your OpenClaw config and every agent request is attributed, costed, and visible in the dashboard -- no code changes to your agents.**
 
-<Note>This page is a stub — the full guide is coming soon.</Note>
+<Steps>
+
+<Step title="Get your two keys">
+
+You need two keys:
+
+| Key | Where to get it | Looks like |
+| --- | --- | --- |
+| Toolken key | Dashboard, under API Keys | `tk_live_...` |
+| Provider key | Your OpenAI account (or whichever provider you use) | `sk-...` |
+
+Toolken forwards your provider key untouched and never stores it.
+
+</Step>
+
+<Step title="Add the Toolken provider to your OpenClaw config">
+
+Open (or create) `~/.openclaw/openclaw.json` and add a `toolken` entry under `models.providers`:
+
+```json5
+{
+  models: {
+    providers: {
+      toolken: {
+        baseUrl: "https://gateway.toolken.ai/v1",
+        api: "openai-completions",
+        apiKey: "${OPENAI_API_KEY}", // your provider key (BYOK); sent as Authorization, forwarded untouched
+        headers: {
+          "X-Toolken-Key": "${TOOLKEN_KEY}",
+          "X-Toolken-Meta-Agent": "research-agent"
+        },
+        models: [{ id: "gpt-4o-mini", name: "GPT-4o mini" }]
+      }
+    }
+  }
+}
+```
+
+<Tip>Values support `${ENV_VAR}` substitution. Keep both keys in environment variables, not in the file itself.</Tip>
+
+</Step>
+
+<Step title="Use the Toolken provider in OpenClaw">
+
+Select the `toolken` provider and the `gpt-4o-mini` model (or whichever model you listed) when running your agent. OpenClaw routes the request through the gateway, attaching `X-Toolken-Key` and `X-Toolken-Meta-Agent` automatically.
+
+</Step>
+
+<Step title="Confirm the request in your dashboard">
+
+Within seconds the request appears in the Toolken dashboard, tagged with the `agent` dimension set to `research-agent`. Cost, token usage, and latency are all captured.
+
+</Step>
+
+</Steps>
+
+<Accordion title="Attribute multiple agents separately">
+
+`X-Toolken-Meta-Agent` is set at the provider level, not per request. To break spend down by agent, define one Toolken provider entry per agent and give each a distinct `X-Toolken-Meta-Agent` value:
+
+```json5
+{
+  models: {
+    providers: {
+      toolken-research: {
+        baseUrl: "https://gateway.toolken.ai/v1",
+        api: "openai-completions",
+        apiKey: "${OPENAI_API_KEY}",
+        headers: {
+          "X-Toolken-Key": "${TOOLKEN_KEY}",
+          "X-Toolken-Meta-Agent": "research-agent"
+        },
+        models: [{ id: "gpt-4o-mini", name: "GPT-4o mini (research)" }]
+      },
+      toolken-summarizer: {
+        baseUrl: "https://gateway.toolken.ai/v1",
+        api: "openai-completions",
+        apiKey: "${OPENAI_API_KEY}",
+        headers: {
+          "X-Toolken-Key": "${TOOLKEN_KEY}",
+          "X-Toolken-Meta-Agent": "summarizer-agent"
+        },
+        models: [{ id: "gpt-4o-mini", name: "GPT-4o mini (summarizer)" }]
+      }
+    }
+  }
+}
+```
+
+Each agent picks its own provider entry. The dashboard shows cost, tokens, and latency broken down by agent name.
+
+</Accordion>
+
+<Note>For the full list of OpenClaw provider config fields -- including fallback models and timeout settings -- see the [OpenClaw provider config reference](https://docs.openclaw.ai/gateway/config-tools).</Note>
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Custom Properties" icon="tag" href="/features/observability/custom-properties">Tag requests with feature, customer, and metadata headers to slice every metric.</Card>
+  <Card title="Providers & Routing" icon="route" href="/features/providers-routing/overview">One gateway URL, 13 providers, your own keys.</Card>
+</CardGroup>

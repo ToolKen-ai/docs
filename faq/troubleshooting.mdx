@@ -1,0 +1,45 @@
+---
+title: "Troubleshooting"
+description: "Common errors and fixes when integrating with the Toolken gateway."
+icon: "wrench"
+---
+
+Stuck on a specific error or missing data? Start here.
+
+<AccordionGroup>
+
+<Accordion title="I get 401">
+Your `X-Toolken-Key` is missing or invalid. Check that the header is present on every request and that the key value is correct.
+</Accordion>
+
+<Accordion title="I get 402">
+Your workspace hit its budget cap (`budget_exceeded`). Contact the team at [hello@toolken.ai](mailto:hello@toolken.ai) to raise it.
+</Accordion>
+
+<Accordion title="I get 422">
+Your `X-Toolken-Metadata` contains an invalid key or exceeds the size or key-count limit. Keys must be lowercase, start with a letter, and use snake_case. Note: malformed JSON is silently ignored, so verify your JSON is well-formed before checking key names.
+</Accordion>
+
+<Accordion title="I get 429">
+You hit a request rate limit or the concurrent-stream limit. Read the `Retry-After` header and back off before retrying.
+</Accordion>
+
+<Accordion title="My requests do not show up in the dashboard">
+Confirm your base URL ends in `/v1`, the `X-Toolken-Key` header is present, and the model name routes to a recognized provider. If the model name is ambiguous, set the `X-Provider` header explicitly.
+</Accordion>
+
+<Accordion title="Ruby (ruby-openai) returns 401 from OpenAI">
+Use `uri_base: "https://gateway.toolken.ai/v1/"` (with the trailing slash) and pass Toolken headers via `extra_headers`. The `base_url` and `default_headers` options are not honored by ruby-openai.
+</Accordion>
+
+<Accordion title="Go (openai-go) returns 404">
+Point a raw `net/http` request at `https://gateway.toolken.ai/v1/chat/completions` with the headers set directly, or verify that your configured base URL preserves the `/v1/` path segment.
+</Accordion>
+
+<Accordion title="Anthropic requests fail">
+The Anthropic SDK base URL is `https://gateway.toolken.ai` with no `/v1`. The SDK appends `/v1/messages` itself, so adding `/v1` to the base URL produces a doubled path and fails.
+</Accordion>
+
+</AccordionGroup>
+
+For the full list of error codes, see the [Errors reference](/api-reference/errors). Still stuck? Email [hello@toolken.ai](mailto:hello@toolken.ai).
