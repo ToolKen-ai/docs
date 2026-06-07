@@ -9,7 +9,7 @@ Product documentation for [Toolken](https://toolken.ai), built with [Mintlify](h
 | Get Started | What is Toolken, Quickstart, Auth, First Cost Report |
 | Attribution & Metadata | Overview, Headers Reference, Recipes, Per-Run & Per-Step |
 | Integrations | Choose Your Path, OpenClaw, Hermes, CrewAI, LangGraph, API Quickstart, OpenAI-Compat Clients |
-| Budgets & Limits | Overview, Budgets, Rate Limits |
+| Rate Limits | Rate Limits |
 | Providers | Overview, BYOK, Model Routing |
 | Concepts | How It Works, Why Edge, Metadata Model, Pricing |
 | Troubleshooting | Error Codes, Cost Not Showing, FAQ |

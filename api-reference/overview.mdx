@@ -3,7 +3,7 @@ title: "Gateway API Overview"
 description: "What the Toolken Gateway API is, how the base URL works, and how authentication works for OpenAI-compatible and Anthropic requests."
 ---
 
-The Toolken Gateway API is a transparent pass-through proxy that sits between your application and the LLM provider. You point your existing SDK at the Toolken gateway URL instead of the provider URL -- everything else stays the same. The gateway adds cost attribution, budget enforcement, and usage recording without altering the request or response.
+The Toolken Gateway API is a transparent pass-through proxy that sits between your application and the LLM provider. You point your existing SDK at the Toolken gateway URL instead of the provider URL -- everything else stays the same. The gateway adds cost attribution and usage recording without altering the request or response.
 
 ## Base URL
 
@@ -56,4 +56,4 @@ Optional headers let you tag each request for cost breakdown in the Toolken dash
 
 ## Errors
 
-When the gateway itself cannot forward the request (budget exceeded, invalid key, timeout, etc.) it returns a JSON error body in the standard OpenAI-compatible shape. See [Errors](/api-reference/errors) for the full list of codes.
+When the gateway itself cannot forward the request (invalid key, timeout, rate limit, etc.) it returns a JSON error body in the standard OpenAI-compatible shape. See [Errors](/api-reference/errors) for the full list of codes.

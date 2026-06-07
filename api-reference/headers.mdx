@@ -50,8 +50,8 @@ Every other key you send (`agent`, `customer_id`, `feature`, `tier`, or anything
 
 The metadata you attach through `X-Toolken-Metadata` and `X-Toolken-Meta-*` follows a few limits:
 
-- Up to **4096 bytes** total (the serialized JSON object).
-- Up to **32 keys**.
+- Up to **16384 bytes** total (the serialized JSON object).
+- Up to **64 keys**.
 - Each key must match `^_?[a-z][a-z0-9_]{0,63}$` -- optional leading underscore, then start with a lowercase letter, followed by lowercase letters, digits, and underscores, up to 64 characters, plus an optional leading underscore. The reserved keys `environment` and `session_id` must be set through `X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id` instead of `X-Toolken-Metadata`.
 
-If the `X-Toolken-Metadata` value is not valid JSON, it is ignored silently and the request still goes through with no error. A well-formed JSON object that breaks one of the rules above -- an invalid key, more than 32 keys, or over 4096 bytes -- is rejected with `422 invalid_metadata`. Validate the JSON on your side before sending, since malformed JSON is dropped without an error.
+If the `X-Toolken-Metadata` value is not valid JSON, it is ignored silently and the request still goes through with no error. A well-formed JSON object that breaks one of the rules above -- an invalid key, more than 64 keys, or over 16384 bytes -- is rejected with `422 invalid_metadata`. Validate the JSON on your side before sending, since malformed JSON is dropped without an error.

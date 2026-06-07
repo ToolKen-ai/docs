@@ -9,7 +9,7 @@ Toolken is a managed LLM gateway. Here are answers to the most common questions 
 <AccordionGroup>
 
 <Accordion title="What is Toolken?">
-A managed LLM gateway on the edge. Point your client at one base URL and every call is attributed by feature, customer, and more, with budgets and rate limits enforced automatically. You bring your own provider keys.
+A managed LLM gateway on the edge. Point your client at one base URL and every call is attributed by feature, customer, and more, with rate limits enforced automatically. You bring your own provider keys.
 </Accordion>
 
 <Accordion title="Do I have to change my code?">
@@ -29,7 +29,7 @@ A single hop at the edge. The gateway runs on Cloudflare's edge network, close t
 </Accordion>
 
 <Accordion title="What happens if the gateway has a problem?">
-Budgets and rate limits fail open, so a brief disruption lets requests through rather than blocking them. Authentication fails closed, so requests are never forwarded without a valid key.
+Rate limits fail open, so a brief disruption lets requests through rather than blocking them. Authentication fails closed, so requests are never forwarded without a valid key.
 </Accordion>
 
 <Accordion title="Can I self-host Toolken?">

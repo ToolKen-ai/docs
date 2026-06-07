@@ -53,9 +53,8 @@
             ]
           },
           {
-            "group": "Budgets & Rate Limits",
+            "group": "Rate Limits",
             "pages": [
-              "features/budgets-rate-limits/budgets",
               "features/budgets-rate-limits/rate-limits"
             ]
           },

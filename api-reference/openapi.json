@@ -3,7 +3,7 @@
   "info": {
     "title": "Toolken Gateway API",
     "version": "1.0.0",
-    "description": "The Toolken gateway is a pass-through proxy that adds cost attribution, budget enforcement, and rate limiting to any OpenAI-compatible or Anthropic request. You bring your own provider keys (BYOK). The gateway URL is a drop-in replacement for the provider base URL."
+    "description": "The Toolken gateway is a pass-through proxy that adds cost attribution and rate limiting to any OpenAI-compatible or Anthropic request. You bring your own provider keys (BYOK). The gateway URL is a drop-in replacement for the provider base URL."
   },
   "servers": [
     {
@@ -19,7 +19,7 @@
   "tags": [
     {
       "name": "Gateway API",
-      "description": "All endpoints are transparent pass-throughs to the upstream provider. The gateway validates your Toolken key, checks budgets, records attribution metadata, then forwards the request verbatim and streams the response back. Request and response bodies follow the provider's standard schema."
+      "description": "All endpoints are transparent pass-throughs to the upstream provider. The gateway validates your Toolken key, records attribution metadata, then forwards the request verbatim and streams the response back. Request and response bodies follow the provider's standard schema."
     }
   ],
   "components": {
@@ -44,7 +44,7 @@
               "message": {
                 "type": "string",
                 "description": "Human-readable description of the error.",
-                "example": "Monthly budget exceeded"
+                "example": "Rate limit exceeded"
               },
               "type": {
                 "type": "string",
@@ -59,7 +59,7 @@
               "code": {
                 "type": "string",
                 "description": "Machine-readable error code. See the Errors reference for the full list.",
-                "example": "budget_exceeded"
+                "example": "rate_limited"
               }
             }
           }
@@ -408,7 +408,7 @@
         "name": "X-Toolken-Metadata",
         "in": "header",
         "required": false,
-        "description": "Primary attribution channel. JSON object of arbitrary key-value pairs. All keys surface as dimensions in the Toolken dashboard. Limits: up to 4096 bytes, up to 32 keys, and each key must match ^_?[a-z][a-z0-9_]{0,63}$. The reserved keys environment and session_id must be set via X-Toolken-Meta-Environment / X-Toolken-Meta-Session-Id headers instead of X-Toolken-Metadata. Invalid JSON is ignored silently with no error; a well-formed object that exceeds the size or key limits or uses an invalid key returns 422 invalid_metadata. Example: {\"agent\": \"research-agent\", \"customer_id\": \"cust_abc\"}.",
+        "description": "Primary attribution channel. JSON object of arbitrary key-value pairs. All keys surface as dimensions in the Toolken dashboard. Limits: up to 16384 bytes, up to 64 keys, and each key must match ^_?[a-z][a-z0-9_]{0,63}$. The reserved keys environment and session_id must be set via X-Toolken-Meta-Environment / X-Toolken-Meta-Session-Id headers instead of X-Toolken-Metadata. Invalid JSON is ignored silently with no error; a well-formed object that exceeds the size or key limits or uses an invalid key returns 422 invalid_metadata. Example: {\"agent\": \"research-agent\", \"customer_id\": \"cust_abc\"}.",
         "schema": { "type": "string", "example": "{\"agent\": \"research-agent\", \"customer_id\": \"cust_abc\"}" }
       },
       "XProviderHeader": {
@@ -431,22 +431,6 @@
                 "type": "proxy_error",
                 "param": null,
                 "code": "missing_api_key"
-              }
-            }
-          }
-        }
-      },
-      "PaymentRequired": {
-        "description": "Monthly spend budget exceeded for this workspace.",
-        "content": {
-          "application/json": {
-            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-            "example": {
-              "error": {
-                "message": "Monthly budget exceeded",
-                "type": "proxy_error",
-                "param": null,
-                "code": "budget_exceeded"
               }
             }
           }
@@ -550,7 +534,7 @@
             }
           },
           "400": {
-            "description": "Bad request -- invalid provider, incompatible path, or max_tokens exceeded.",
+            "description": "Bad request -- invalid provider or incompatible path.",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -558,7 +542,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
+
           "403": { "$ref": "#/components/responses/Forbidden" },
           "413": {
             "description": "Request body exceeds the allowed size limit.",
@@ -628,7 +612,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
+
           "403": { "$ref": "#/components/responses/Forbidden" },
           "413": {
             "description": "Request body exceeds the allowed size limit.",
@@ -697,7 +681,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
+
           "403": { "$ref": "#/components/responses/Forbidden" },
           "413": {
             "description": "Request body exceeds the allowed size limit.",
@@ -760,7 +744,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
+
           "403": { "$ref": "#/components/responses/Forbidden" },
           "413": {
             "description": "Request body exceeds the allowed size limit.",
@@ -806,7 +790,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
+
           "403": { "$ref": "#/components/responses/Forbidden" },
           "400": {
             "description": "Unknown or invalid provider.",
@@ -865,7 +849,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
+
           "403": { "$ref": "#/components/responses/Forbidden" },
           "413": {
             "description": "Request body exceeds the allowed size limit.",
@@ -928,7 +912,7 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
+
           "403": { "$ref": "#/components/responses/Forbidden" },
           "413": {
             "description": "Request body exceeds the allowed size limit.",

@@ -31,13 +31,11 @@ When the gateway itself cannot forward your request, it returns a JSON error bod
 |-------------|------|---------|------------|
 | 400 | `invalid_provider` | The `X-Provider` header value is not a recognized provider name. | Check the header value against the [supported providers list](/api-reference/overview#provider-detection). |
 | 400 | `incompatible_path` | The detected provider does not support the requested path (e.g. a Claude model sent to `/v1/chat/completions`, or an OpenAI model sent to `/v1/messages`). | Use the correct path for the provider: `/v1/chat/completions` for OpenAI-compatible providers, `/v1/messages` for Anthropic. |
-| 400 | `max_tokens_exceeded` | The `max_tokens` value in the request body exceeds the workspace cap configured in Toolken. | Lower `max_tokens` or increase the workspace cap in the Toolken dashboard. |
 | 401 | `missing_api_key` | The `X-Toolken-Key` header was not included in the request. | Add `X-Toolken-Key: <your-key>` to every request. |
 | 401 | `invalid_api_key` | The `X-Toolken-Key` value does not match any active API key in your workspace. | Verify the key is correct and has not been revoked in the Toolken dashboard. |
-| 402 | `budget_exceeded` | The monthly spend budget for your workspace has been reached. | Increase the budget in the Toolken dashboard or wait for the next billing cycle. |
 | 403 | `tenant_suspended` | Your workspace has been suspended. | Contact Toolken support. |
 | 413 | `payload_too_large` | The request body exceeds the allowed size limit. | Reduce the request body size. |
-| 422 | `invalid_metadata` | The metadata in `X-Toolken-Metadata` is valid JSON but contains an invalid key, or exceeds the size or key-count limit. | Use lowercase snake_case keys starting with a letter (up to 64 characters). Keep the object under 4 KB and 32 keys. |
+| 422 | `invalid_metadata` | The metadata in `X-Toolken-Metadata` is valid JSON but contains an invalid key, or exceeds the size or key-count limit. | Use lowercase snake_case keys starting with a letter (up to 64 characters). Keep the object under 16 KB and 64 keys. |
 | 429 | `rate_limited` | The request rate limit for your workspace has been exceeded. | Implement exponential backoff and retry. |
 | 429 | `concurrent_stream_limit` | Too many simultaneous streaming requests are open for your workspace. | Close idle streams and retry. |
 | 502 | `provider_unreachable` | The gateway could not establish a connection to the upstream provider. | Retry with backoff. Check the provider status page. |

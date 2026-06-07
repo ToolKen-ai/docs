@@ -28,7 +28,7 @@ Set them with `X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id`. They
 
 ## Custom dimensions
 
-Any safe key you send via `X-Toolken-Metadata` or `X-Toolken-Meta-*` becomes a dimension automatically. Keys must match `^_?[a-z][a-z0-9_]{0,63}$`, with a 4096-byte total metadata limit and up to 32 keys per request. The reserved keys `environment` and `session_id` are set via their dedicated headers (`X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id`) and cannot be sent through `X-Toolken-Metadata`. Common examples:
+Any safe key you send via `X-Toolken-Metadata` or `X-Toolken-Meta-*` becomes a dimension automatically. Keys must match `^_?[a-z][a-z0-9_]{0,63}$`, with a 16384-byte (16 KB) total metadata limit and up to 64 keys per request. The reserved keys `environment` and `session_id` are set via their dedicated headers (`X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id`) and cannot be sent through `X-Toolken-Metadata`. Common examples:
 
 | What you want to slice by | Header to send | Metadata key |
 | --- | --- | --- |

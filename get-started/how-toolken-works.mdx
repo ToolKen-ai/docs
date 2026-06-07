@@ -30,14 +30,13 @@ flowchart TD
 | --- | --- | --- |
 | Per-agent cost | Parse usage from every response, join to a pricing table, store it | One `X-Toolken-Meta-Agent` header |
 | New model pricing | Track every provider price change yourself | Priced at the gateway, kept current |
-| Stop a runaway agent | Build budget tracking and a kill-switch | Cap enforced at the edge, before the provider bills you |
 | Latency added | None (you are inline) | One edge hop, off the response path |
 
 ## What you can do today
 
 <CardGroup cols={2}>
   <Card title="Observability" icon="chart-bar" href="/features/observability/overview">Slice any metric by agent, feature, or customer.</Card>
-  <Card title="Set budgets & limits" icon="shield-check" href="/features/budgets-rate-limits/budgets">Caps enforced at the edge.</Card>
+  <Card title="Rate limits" icon="gauge-high" href="/features/budgets-rate-limits/rate-limits">Request-rate and concurrent-stream limits at the edge.</Card>
   <Card title="Route any provider" icon="shuffle" href="/features/providers-routing/overview">One endpoint, your keys.</Card>
   <Card title="See it in the dashboard" icon="gauge" href="/features/observability/dashboard">Cost, usage, reliability, performance.</Card>
 </CardGroup>
