@@ -103,7 +103,6 @@
       {
         "anchor": "API Reference",
         "icon": "code",
-        "openapi": "api-reference/openapi.json",
         "groups": [
           {
             "group": "Gateway API",
@@ -116,18 +115,18 @@
           {
             "group": "AI Gateway",
             "pages": [
-              "api-reference/openapi/chat-completions",
-              "api-reference/openapi/anthropic-messages",
-              "api-reference/openapi/responses",
-              "api-reference/openapi/embeddings",
-              "api-reference/openapi/audio",
-              "api-reference/openapi/images"
+              "api-reference/endpoints/chat-completions",
+              "api-reference/endpoints/anthropic-messages",
+              "api-reference/endpoints/responses",
+              "api-reference/endpoints/embeddings",
+              "api-reference/endpoints/audio",
+              "api-reference/endpoints/images"
             ]
           },
           {
             "group": "Models",
             "pages": [
-              "api-reference/openapi/list-models"
+              "api-reference/endpoints/list-models"
             ]
           },
           {

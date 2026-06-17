@@ -1,78 +1,206 @@
 ---
 title: "Claude Code"
-description: "Route Claude Code's LLM calls through Toolken by setting three environment variables. Every request is attributed and visible in the dashboard."
+description: "Route Claude Code through Toolken. Use your Anthropic API key or your Claude subscription, for one developer or your whole team."
 icon: "terminal"
 ---
 
-**Claude Code reads `ANTHROPIC_BASE_URL`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_CUSTOM_HEADERS` at startup -- set all three and every request is tracked in Toolken without touching your prompts or workflows.**
+Point Claude Code at the Toolken gateway and every request is tracked: cost, tokens, latency, and attribution. Your prompts and workflow stay exactly the same.
+
+## Pick your auth
+
+Claude Code can reach Anthropic through Toolken two ways:
+
+| Method | Best for | What you provide |
+| --- | --- | --- |
+| API key (BYOK) | Production, teams, CI | Your Anthropic key (`sk-ant-...`) |
+| Claude subscription | Pro and Max users | Your existing Claude login. No API key to hand out. |
+
+The API key path is the durable default. The subscription path lets a developer route their own Claude plan with nothing to distribute. Both carry the same `X-Toolken-Key`, so usage lands in your workspace either way.
+
+## How to connect
+
+Set it up [just for yourself](#just-for-you), or roll it out to [your whole team](#for-your-whole-team).
+
+On a Claude subscription? Just run `/login` and skip the API key. Using an API key? Add it as shown below.
+
+### Just for you
+
+The quickest setup: add the config once and every session uses it.
 
 <Steps>
 
-<Step title="Get your two keys">
+<Step title="Open ~/.claude/settings.json">
 
-You need two keys:
-
-| Key | Where to get it | Looks like |
-| --- | --- | --- |
-| Toolken key | Dashboard, under API Keys | `tk_live_...` |
-| Anthropic key | Your Anthropic account | `sk-ant-...` |
-
-Toolken forwards your Anthropic key verbatim and never stores it.
+Create the file if it does not exist.
 
 </Step>
 
-<Step title="Set the environment variables">
+<Step title="Add the gateway config">
 
-Export the three variables before launching Claude Code:
-
-```bash
-export ANTHROPIC_BASE_URL="https://gateway.toolken.ai"
-export ANTHROPIC_API_KEY="sk-ant-..."
-export ANTHROPIC_CUSTOM_HEADERS="X-Toolken-Key: tk_live_...
-X-Toolken-Meta-Agent: claude-code"
+```json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://gateway.toolken.ai",
+    "ANTHROPIC_CUSTOM_HEADERS": "X-Toolken-Key: tk_live_...",
+    "ANTHROPIC_API_KEY": "sk-ant-..."
+  }
+}
 ```
 
-<Note>`ANTHROPIC_BASE_URL` must be `https://gateway.toolken.ai` with no `/v1` at the end. Claude Code appends `/v1/messages` itself -- adding `/v1` will cause routing errors.</Note>
+<Note>On a Claude Pro or Max subscription? Remove the `ANTHROPIC_API_KEY` line and run `/login` instead.</Note>
 
-<Tip>`ANTHROPIC_CUSTOM_HEADERS` is newline-delimited: each `Name: Value` pair on its own line. The example above sets two headers. You can add more pairs on additional lines using the same format.</Tip>
-
-To persist these across shell sessions, add the three `export` lines to your `~/.zshrc`, `~/.bashrc`, or equivalent profile file.
+`ANTHROPIC_BASE_URL` has no trailing `/v1`. Claude Code appends `/v1/messages` itself.
 
 </Step>
 
 <Step title="Run Claude Code">
 
-Start Claude Code as normal:
-
 ```bash
 claude
 ```
 
-Claude Code picks up the environment variables at launch. All LLM calls are automatically routed through the Toolken gateway with `X-Toolken-Key` and `X-Toolken-Meta-Agent` attached.
-
-</Step>
-
-<Step title="Confirm in your dashboard">
-
-Within seconds your first request appears in the Toolken dashboard, grouped under the `claude-code` agent. Cost, token usage, and latency are all captured automatically.
+Your first request shows up in the dashboard within seconds.
 
 </Step>
 
 </Steps>
 
-## How the two keys travel
+#### Shell variables (quick test)
 
-Claude Code injects your Anthropic key as `x-api-key`. Toolken reads `X-Toolken-Key` separately and forwards `x-api-key` unchanged.
+The fastest way to try it in one terminal:
 
-| Header | Who reads it | What happens after |
+```bash
+export ANTHROPIC_BASE_URL="https://gateway.toolken.ai"
+export ANTHROPIC_API_KEY="sk-ant-..."   # skip this line if you use your Claude subscription
+export ANTHROPIC_CUSTOM_HEADERS="X-Toolken-Key: tk_live_..."
+claude
+```
+
+Add the lines to `~/.zshrc` or `~/.bashrc` to keep them across sessions.
+
+#### Per project
+
+Put the `env` block in a repo's `.claude/settings.json` to route or tag a single project. Use `.claude/settings.local.json` to keep it out of git.
+
+```json
+{
+  "env": {
+    "ANTHROPIC_CUSTOM_HEADERS": "X-Toolken-Key: tk_live_...\nX-Toolken-Meta-Project: web-app\nX-Toolken-Meta-Environment: dev"
+  }
+}
+```
+
+`X-Toolken-Meta-*` headers become attribution dimensions in the dashboard, so you can break cost down per project or environment.
+
+<Warning>
+`ANTHROPIC_CUSTOM_HEADERS` is a single variable. A project value replaces the one from your base settings entirely. The levels do not merge, and `${ANTHROPIC_CUSTOM_HEADERS}` does not carry the base value in. Always repeat `X-Toolken-Key` alongside any per-project headers.
+</Warning>
+
+### For your whole team
+
+Without a centralized config, every developer has to set `ANTHROPIC_BASE_URL`, `ANTHROPIC_CUSTOM_HEADERS`, and their Toolken key by hand, and any one of them can accidentally bypass the gateway by reverting their env. Managed settings solve this: the config is deployed at the OS level and Claude Code loads it at startup before any user config can override it.
+
+<Steps>
+
+<Step title="Create your managed settings file">
+
+The file must be placed at a system path that requires admin or MDM access to write. Claude Code reads it automatically at startup.
+
+| OS | Path |
+| --- | --- |
+| macOS | `/Library/Application Support/ClaudeCode/managed-settings.json` |
+| Linux / WSL | `/etc/claude-code/managed-settings.json` |
+| Windows | `C:\Program Files\ClaudeCode\managed-settings.json` |
+
+</Step>
+
+<Step title="Add the gateway config">
+
+The `env` block inside the file sets environment variables that Claude Code picks up as if the user had exported them. Use your workspace's Toolken key in `X-Toolken-Key`.
+
+```json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://gateway.toolken.ai",
+    "ANTHROPIC_CUSTOM_HEADERS": "X-Toolken-Key: tk_live_your_workspace_key"
+  }
+}
+```
+
+If your team uses a shared Anthropic API key instead of personal subscriptions, add `ANTHROPIC_API_KEY` as the last key in the `env` block. It is shared across the team, sent as `x-api-key`, and forwarded untouched.
+
+`ANTHROPIC_BASE_URL` must be `https://gateway.toolken.ai` with no trailing `/v1`. Claude Code appends `/v1/messages` itself.
+
+</Step>
+
+<Step title="Deploy via your MDM or config management tool">
+
+Push the file to every developer machine through your usual tooling:
+
+- **macOS (Jamf):** add a Files and Processes policy to write the file to `/Library/Application Support/ClaudeCode/managed-settings.json` with root ownership and `644` permissions.
+- **Windows (Intune):** use a PowerShell remediation script or a Win32 app to deploy the file to `C:\Program Files\ClaudeCode\`.
+- **Linux:** include the file in your Ansible playbook, Chef cookbook, or Puppet manifest targeting `/etc/claude-code/`.
+
+Once deployed, Claude Code picks up the config on next launch. No terminal commands or shell profile edits are needed from developers.
+
+</Step>
+
+</Steps>
+
+#### How the auth model works
+
+The shared `X-Toolken-Key` in the managed settings file identifies your company's Toolken workspace. It does not give anyone access to another person's Anthropic account.
+
+Each developer still logs into Claude Code with their own Claude Pro or Max subscription by running `/login` in Claude Code. When a request goes out, Claude Code sends the developer's own subscription auth to the gateway, which forwards it untouched to Anthropic. Toolken reads `X-Toolken-Key` separately for workspace attribution and strips it before forwarding.
+
+If the team uses a shared Anthropic API key, add `ANTHROPIC_API_KEY` to the managed settings `env` block. The key is shared across all developers, sent as `x-api-key`, and forwarded to Anthropic untouched.
+
+| Credential | Who owns it | What Toolken does |
 | --- | --- | --- |
-| `X-Toolken-Key: tk_live_...` | Toolken gateway | Stripped before forwarding |
-| `x-api-key: sk-ant-...` | Anthropic | Forwarded untouched |
-| `X-Toolken-Meta-Agent: ...` | Toolken gateway | Recorded as metadata key `agent`, then stripped |
+| `X-Toolken-Key: tk_live_...` | Your company workspace | Read for workspace auth, stripped before forwarding |
+| Developer Claude subscription | Each individual developer | Forwarded untouched to Anthropic |
+| `ANTHROPIC_API_KEY` (`sk-ant-...`) | Shared team credential | Forwarded untouched as `x-api-key`. API key path only. |
+
+Nobody on the subscription path shares an API key. Each person's subscription is used independently. The workspace key gives you a single place in the Toolken dashboard to see aggregate usage across the whole team.
+
+<Warning>
+Anthropic's server-managed settings (configured through the Claude.ai admin console) are not applied when Claude Code routes through a custom `ANTHROPIC_BASE_URL`. Use the file-based managed settings paths above instead. These two mechanisms are independent: file-based managed settings work for any gateway endpoint; Claude.ai admin settings only apply when Claude Code connects directly to Anthropic.
+</Warning>
+
+## What each credential does
+
+| Credential | Who reads it | What happens after |
+| --- | --- | --- |
+| `X-Toolken-Key: tk_live_...` | Toolken gateway | Read for workspace auth, stripped before forwarding |
+| `ANTHROPIC_API_KEY` (`sk-ant-...`) | Anthropic | Sent as `x-api-key`, forwarded untouched. API key path only. |
+| Claude subscription login | Anthropic | Forwarded untouched as the auth bearer. Subscription path only. |
+| `X-Toolken-Meta-*` | Toolken gateway | Recorded as metadata, then stripped |
+
+Toolken never stores your Anthropic credentials.
+
+## Attribution comes for free
+
+Claude Code natively sends attribution headers that Toolken captures with no extra config:
+
+| Header | Sent | Becomes |
+| --- | --- | --- |
+| `X-Claude-Code-Session-Id` | Every request | `session_id` dimension |
+| `X-Claude-Code-Agent-Id` | Subagent or teammate requests | `agent_id` metadata |
+| `X-Claude-Code-Parent-Agent-Id` | Nested agent requests | `parent_agent_id` metadata |
+
+So you can break usage down by session and by subagent out of the box. See Anthropic's [LLM gateway reference](https://code.claude.com/docs/en/llm-gateway).
+
+These are ephemeral session and agent IDs, not a developer identity, so they do not attribute cost to a specific person. Anything you set yourself (for example `X-Toolken-Meta-Session-Id`) takes precedence over the Claude Code value.
+
+<Note>
+Subscription routing depends on your Claude plan and Anthropic's gateway support. Anthropic can change or disable it at any time. For production and teams, the API key path is the durable default.
+</Note>
 
 ## Next
 
 <CardGroup cols={2}>
-  <Card title="Codex" icon="code" href="/integrations/codex">Route OpenAI Codex CLI traffic through Toolken with a custom provider entry.</Card>
+  <Card title="Headers Reference" icon="list" href="/api-reference/headers">Every Toolken request header and what it does.</Card>
   <Card title="Providers & Routing" icon="route" href="/features/providers-routing/overview">One gateway URL, 13 providers, your own keys.</Card>
+  <Card title="Custom Properties" icon="tag" href="/features/observability/custom-properties">How attribution headers become groupable dimensions in the dashboard.</Card>
+  <Card title="Codex" icon="code" href="/integrations/codex">Route OpenAI Codex CLI traffic through Toolken with a custom provider entry.</Card>
 </CardGroup>

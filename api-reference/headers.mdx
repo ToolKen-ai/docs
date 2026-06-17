@@ -27,6 +27,18 @@ These headers are forwarded verbatim to the upstream provider. The gateway does 
 
 Both headers can be present on the same request when the provider accepts dual auth. All headers not in the Toolken namespace are forwarded unchanged.
 
+## Claude Code attribution headers
+
+When you route Claude Code through Toolken, Claude Code automatically sends these headers. Toolken captures them as attribution data with no extra configuration required. They are forwarded to the provider unchanged and are not stripped.
+
+| Header | Sent by Claude Code | Captured as | Notes |
+|--------|---------------------|-------------|-------|
+| `X-Claude-Code-Session-Id` | Every request | `session_id` dimension | Ephemeral per-session ID |
+| `X-Claude-Code-Agent-Id` | Subagent or teammate requests only | `agent_id` metadata | Ephemeral per-spawn ID |
+| `X-Claude-Code-Parent-Agent-Id` | Nested agent requests only | `parent_agent_id` metadata | Ephemeral per-spawn ID |
+
+These are the lowest-priority source for each key. If you also send `X-Toolken-Meta-Session-Id` (or any other metadata header that sets the same key), your value takes precedence. The IDs identify sessions and agents, not individual people.
+
 ## customer_id precedence
 
 When multiple sources set `customer_id`, the gateway applies this order (highest priority first):
