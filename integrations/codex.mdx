@@ -36,7 +36,7 @@ env_key = "OPENAI_API_KEY"
 
 [model_providers.toolken.http_headers]
 X-Toolken-Key = "tk_live_..."
-X-Toolken-Meta-Agent = "codex"
+X-Toolken-Metadata-Agent = "codex"
 ```
 
 `env_key` tells Codex which environment variable holds your provider key. That key is sent as `Authorization: Bearer` and forwarded to the provider untouched.
@@ -54,7 +54,7 @@ export OPENAI_API_KEY="sk-..."
 codex
 ```
 
-Codex selects the `toolken` provider from `config.toml`, attaches `X-Toolken-Key` and `X-Toolken-Meta-Agent`, and routes the request through the gateway.
+Codex selects the `toolken` provider from `config.toml`, attaches `X-Toolken-Key` and `X-Toolken-Metadata-Agent`, and routes the request through the gateway.
 
 </Step>
 

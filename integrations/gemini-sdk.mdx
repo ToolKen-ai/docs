@@ -36,7 +36,7 @@ client = OpenAI(
     api_key="AIza...",             # your Gemini key, forwarded untouched
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Meta-Agent": "my-agent",  # tag this client's traffic
+        "X-Toolken-Metadata-Agent": "my-agent",  # tag this client's traffic
     },
 )
 
@@ -55,7 +55,7 @@ const client = new OpenAI({
   apiKey: process.env.GEMINI_API_KEY,  // forwarded untouched
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Meta-Agent": "my-agent",  // tag this client's traffic
+    "X-Toolken-Metadata-Agent": "my-agent",  // tag this client's traffic
   },
 });
 
@@ -73,7 +73,7 @@ console.log(response.choices[0].message.content);
 
 <Step title="Attribute by customer (optional)">
 
-Add `X-Toolken-Customer-Id` to track spend per end-user or organization:
+Add `X-Toolken-Metadata-Customer-Id` to track spend per end-user or organization:
 
 <CodeGroup>
 ```python Python
@@ -82,8 +82,8 @@ client = OpenAI(
     api_key="AIza...",
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Meta-Agent": "research-pipeline",
-        "X-Toolken-Meta-Customer-Id": "org_abc123",
+        "X-Toolken-Metadata-Agent": "research-pipeline",
+        "X-Toolken-Metadata-Customer-Id": "org_abc123",
     },
 )
 ```
@@ -94,8 +94,8 @@ const client = new OpenAI({
   apiKey: process.env.GEMINI_API_KEY,
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Meta-Agent": "research-pipeline",
-    "X-Toolken-Meta-Customer-Id": "org_abc123",
+    "X-Toolken-Metadata-Agent": "research-pipeline",
+    "X-Toolken-Metadata-Customer-Id": "org_abc123",
   },
 });
 ```
@@ -145,8 +145,8 @@ The gateway rewrites the OpenAI-compatible request body to Gemini's `generateCon
 | --- | --- | --- |
 | `X-Toolken-Key: tk_live_...` | Toolken gateway | Stripped before forwarding |
 | `Authorization: Bearer AIza...` | Toolken gateway | Forwarded to Google as `x-goog-api-key` |
-| `X-Toolken-Meta-Agent: ...` | Toolken gateway | Recorded as metadata key `agent`, then stripped |
-| `X-Toolken-Meta-Customer-Id: ...` | Toolken gateway | Recorded as metadata key `customer_id`, then stripped |
+| `X-Toolken-Metadata-Agent: ...` | Toolken gateway | Recorded as metadata key `agent`, then stripped |
+| `X-Toolken-Metadata-Customer-Id: ...` | Toolken gateway | Recorded as metadata key `customer_id`, then stripped |
 
 ## Next
 

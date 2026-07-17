@@ -12,12 +12,12 @@ Toolken records every request by model and provider automatically. Add one or mo
   <Card title="X-Toolken-Metadata" icon="brackets-curly">
     A JSON object of arbitrary key-value pairs. Each key becomes its own dimension. Use when you already have a structured object.
   </Card>
-  <Card title="X-Toolken-Meta-*" icon="tag">
-    Flat-header shorthand. The suffix after `X-Toolken-Meta-` is lowercased and converted from kebab-case to snake_case as the key. Use for one-off keys.
+  <Card title="X-Toolken-Metadata-*" icon="tag">
+    Flat-header shorthand. The suffix after `X-Toolken-Metadata-` is lowercased and converted from kebab-case to snake_case as the key. Use for one-off keys.
   </Card>
 </CardGroup>
 
-These two channels are equivalent. `X-Toolken-Meta-Agent: research-agent` is the same as `X-Toolken-Metadata: {"agent":"research-agent"}`.
+These two channels are equivalent. `X-Toolken-Metadata-Agent: research-agent` is the same as `X-Toolken-Metadata: {"agent":"research-agent"}`.
 
 ## Send your first tagged request
 
@@ -30,9 +30,9 @@ client = OpenAI(
     api_key="sk-...",                          # your provider key, forwarded untouched
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Meta-Agent": "research-agent",
-        "X-Toolken-Meta-Customer-Id": "user_abc123",
-        "X-Toolken-Meta-Environment": "production",
+        "X-Toolken-Metadata-Agent": "research-agent",
+        "X-Toolken-Metadata-Customer-Id": "user_abc123",
+        "X-Toolken-Metadata-Environment": "production",
     },
 )
 client.chat.completions.create(
@@ -49,9 +49,9 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,           // forwarded untouched
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Meta-Agent": "research-agent",
-    "X-Toolken-Meta-Customer-Id": "user_abc123",
-    "X-Toolken-Meta-Environment": "production",
+    "X-Toolken-Metadata-Agent": "research-agent",
+    "X-Toolken-Metadata-Customer-Id": "user_abc123",
+    "X-Toolken-Metadata-Environment": "production",
   },
 });
 await client.chat.completions.create({
@@ -64,9 +64,9 @@ await client.chat.completions.create({
 curl https://gateway.toolken.ai/v1/chat/completions \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
   -H "X-Toolken-Key: tk_live_..." \
-  -H "X-Toolken-Meta-Agent: research-agent" \
-  -H "X-Toolken-Meta-Customer-Id: user_abc123" \
-  -H "X-Toolken-Meta-Environment: production" \
+  -H "X-Toolken-Metadata-Agent: research-agent" \
+  -H "X-Toolken-Metadata-Customer-Id: user_abc123" \
+  -H "X-Toolken-Metadata-Environment: production" \
   -H "Content-Type: application/json" \
   -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Summarize this article."}]}'
 ```
@@ -80,25 +80,25 @@ If you already have a structured object, send everything in `X-Toolken-Metadata`
 X-Toolken-Metadata: {"agent":"research-agent","customer_id":"user_abc123","environment":"production","tier":"pro"}
 ```
 
-<Tip>Use `X-Toolken-Meta-*` headers for one-off keys. Use `X-Toolken-Metadata` when you already have a structured object to send.</Tip>
+<Tip>Use `X-Toolken-Metadata-*` headers for one-off keys. Use `X-Toolken-Metadata` when you already have a structured object to send.</Tip>
 
-## Convenience aliases
+## Common attribution keys
 
-Two dedicated headers exist as shortcuts for the most common attribution keys:
+`feature` and `customer_id` are the two most common attribution keys. Set them via the standard metadata channel:
 
 | Header | Writes metadata key | Notes |
 | --- | --- | --- |
-| `X-Toolken-Feature` | `feature` | Any string: agent name, workflow, UI feature, cron job. |
-| `X-Toolken-Customer-Id` | `customer_id` | Lowest priority; metadata channel wins when both are set (see precedence below). |
+| `X-Toolken-Metadata-Feature` | `feature` | Any string: agent name, workflow, UI feature, cron job. |
+| `X-Toolken-Metadata-Customer-Id` | `customer_id` | Sets the customer attribution dimension. |
 
-These are metadata keys, not reserved dimensions. They land in the same metadata store as any `X-Toolken-Meta-*` header.
+These are regular metadata keys, not reserved dimensions. They land in the same metadata store as any other `X-Toolken-Metadata-*` header.
 
 ## Attributing by agent
 
 To see cost per agent, send the agent's name as a metadata key:
 
 ```bash
-X-Toolken-Meta-Agent: billing-agent
+X-Toolken-Metadata-Agent: billing-agent
 ```
 
 This writes `agent = billing-agent` to the request record. In the dashboard, group Cost by `agent` to see one line per agent name. Use a short, stable value so the groupings stay readable across time.
@@ -111,8 +111,7 @@ You can set `customer_id` in more than one way. If you set it multiple ways on t
 | --- | --- | --- |
 | 1 (highest) | Request body metadata field | `"customer_id"` inside the provider request body `metadata` object |
 | 2 | JSON metadata header | `X-Toolken-Metadata: {"customer_id":"<id>"}` |
-| 3 | Meta-\* shorthand header | `X-Toolken-Meta-Customer-Id: <id>` |
-| 4 (lowest) | Dedicated header | `X-Toolken-Customer-Id: <id>` |
+| 3 (lowest) | Metadata-\* shorthand header | `X-Toolken-Metadata-Customer-Id: <id>` |
 
 The simplest rule: set it one way. Only the priority matters if you end up setting it multiple ways.
 

@@ -33,12 +33,12 @@ model = ChatOpenAI(
     api_key="sk-...",          # your provider key (BYOK), forwarded untouched
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Meta-Agent": "research-agent",
+        "X-Toolken-Metadata-Agent": "research-agent",
     },
 )
 ```
 
-`X-Toolken-Meta-Agent` labels this model's traffic in the dashboard. Use any string that identifies the graph or workflow.
+`X-Toolken-Metadata-Agent` labels this model's traffic in the dashboard. Use any string that identifies the graph or workflow.
 
 </Step>
 
@@ -70,7 +70,7 @@ Run your graph. Within seconds, calls appear in the Toolken dashboard grouped un
 </Steps>
 
 <Tip>
-To attribute spend per agent or per node, create one `ChatOpenAI` instance per logical role and give each a distinct `X-Toolken-Meta-Agent` value. For example, a `"planner-agent"` model and a `"summarizer-agent"` model each show up as separate line items in the dashboard, so you can see exactly which part of your graph is driving cost.
+To attribute spend per agent or per node, create one `ChatOpenAI` instance per logical role and give each a distinct `X-Toolken-Metadata-Agent` value. For example, a `"planner-agent"` model and a `"summarizer-agent"` model each show up as separate line items in the dashboard, so you can see exactly which part of your graph is driving cost.
 </Tip>
 
 ## Next

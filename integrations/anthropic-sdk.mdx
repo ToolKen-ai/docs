@@ -34,7 +34,7 @@ client = anthropic.Anthropic(
     api_key="sk-ant-...",                   # your Anthropic key, forwarded untouched
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Meta-Agent": "my-agent",  # tag this client's traffic
+        "X-Toolken-Metadata-Agent": "my-agent",  # tag this client's traffic
     },
 )
 
@@ -54,7 +54,7 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,  // forwarded untouched
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Meta-Agent": "my-agent",  // tag this client's traffic
+    "X-Toolken-Metadata-Agent": "my-agent",  // tag this client's traffic
   },
 });
 
@@ -67,13 +67,13 @@ console.log(message.content[0].text);
 ```
 </CodeGroup>
 
-<Tip>`X-Toolken-Meta-Agent` takes any string. Use one value per agent or workflow you want to track separately in the dashboard. Any `X-Toolken-Meta-*` header becomes a groupable dimension automatically.</Tip>
+<Tip>`X-Toolken-Metadata-Agent` takes any string. Use one value per agent or workflow you want to track separately in the dashboard. Any `X-Toolken-Metadata-*` header becomes a groupable dimension automatically.</Tip>
 
 </Step>
 
 <Step title="Attribute by customer (optional)">
 
-Add `X-Toolken-Customer-Id` to track spend per end-user or organization:
+Add `X-Toolken-Metadata-Customer-Id` to track spend per end-user or organization:
 
 <CodeGroup>
 ```python Python
@@ -82,8 +82,8 @@ client = anthropic.Anthropic(
     api_key="sk-ant-...",
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Meta-Agent": "support-agent",
-        "X-Toolken-Meta-Customer-Id": "org_abc123",
+        "X-Toolken-Metadata-Agent": "support-agent",
+        "X-Toolken-Metadata-Customer-Id": "org_abc123",
     },
 )
 ```
@@ -94,8 +94,8 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Meta-Agent": "support-agent",
-    "X-Toolken-Meta-Customer-Id": "org_abc123",
+    "X-Toolken-Metadata-Agent": "support-agent",
+    "X-Toolken-Metadata-Customer-Id": "org_abc123",
   },
 });
 ```
@@ -152,12 +152,12 @@ The Anthropic SDK injects your key as `x-api-key`. Toolken reads `X-Toolken-Key`
 | --- | --- | --- |
 | `X-Toolken-Key: tk_live_...` | Toolken gateway | Stripped before forwarding |
 | `x-api-key: sk-ant-...` | Anthropic | Forwarded untouched |
-| `X-Toolken-Meta-Agent: ...` | Toolken gateway | Recorded as metadata key `agent`, then stripped |
-| `X-Toolken-Meta-Customer-Id: ...` | Toolken gateway | Recorded as metadata key `customer_id`, then stripped |
+| `X-Toolken-Metadata-Agent: ...` | Toolken gateway | Recorded as metadata key `agent`, then stripped |
+| `X-Toolken-Metadata-Customer-Id: ...` | Toolken gateway | Recorded as metadata key `customer_id`, then stripped |
 
 ## Provider detection
 
-Any request to `/v1/messages` routes to Anthropic automatically. A model name starting with `claude-` also triggers auto-detection. You do not need an `X-Provider` header.
+Any request to `/v1/messages` routes to Anthropic automatically. A model name starting with `claude-` also triggers auto-detection. You do not need an `X-Toolken-Provider` header.
 
 ## Next
 

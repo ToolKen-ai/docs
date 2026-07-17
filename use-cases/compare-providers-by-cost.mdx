@@ -23,7 +23,7 @@ client = OpenAI(
     api_key="sk-...",  # your provider key, forwarded untouched
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Feature": "provider-comparison",
+        "X-Toolken-Metadata-Feature": "provider-comparison",
     },
 )
 
@@ -38,7 +38,7 @@ client_groq = OpenAI(
     api_key="gsk_...",  # your Groq key
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Feature": "provider-comparison",
+        "X-Toolken-Metadata-Feature": "provider-comparison",
     },
 )
 client_groq.chat.completions.create(model="llama-3.1-8b-instant", messages=prompt)
@@ -55,7 +55,7 @@ const openaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // forwarded untouched
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Feature": "provider-comparison",
+    "X-Toolken-Metadata-Feature": "provider-comparison",
   },
 });
 await openaiClient.chat.completions.create({ model: "gpt-4o-mini", messages: prompt });
@@ -66,7 +66,7 @@ const groqClient = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Feature": "provider-comparison",
+    "X-Toolken-Metadata-Feature": "provider-comparison",
   },
 });
 await groqClient.chat.completions.create({ model: "llama-3.1-8b-instant", messages: groqMessages });
@@ -79,7 +79,7 @@ PROMPT='{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Explain bac
 curl https://gateway.toolken.ai/v1/chat/completions \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
   -H "X-Toolken-Key: tk_live_..." \
-  -H "X-Toolken-Feature: provider-comparison" \
+  -H "X-Toolken-Metadata-Feature: provider-comparison" \
   -H "Content-Type: application/json" \
   -d "$PROMPT"
 
@@ -87,7 +87,7 @@ curl https://gateway.toolken.ai/v1/chat/completions \
 curl https://gateway.toolken.ai/v1/chat/completions \
   -H "Authorization: Bearer $GROQ_API_KEY" \
   -H "X-Toolken-Key: tk_live_..." \
-  -H "X-Toolken-Feature: provider-comparison" \
+  -H "X-Toolken-Metadata-Feature: provider-comparison" \
   -H "Content-Type: application/json" \
   -d '{"model":"llama-3.1-8b-instant","messages":[{"role":"user","content":"Explain backpressure in stream processing in two sentences."}]}'
 ```
@@ -113,13 +113,13 @@ Go to the cost view. Group by **Model** to see per-model cost side by side, or g
 
 <Accordion title="Reach more models with OpenRouter">
 
-OpenRouter aggregates a wide catalog of models from many providers. Set `X-Provider: openrouter` and pass your OpenRouter key. You can then use any model in their catalog without signing up for each provider separately.
+OpenRouter aggregates a wide catalog of models from many providers. Set `X-Toolken-Provider: openrouter` and pass your OpenRouter key. You can then use any model in their catalog without signing up for each provider separately.
 
 ```python
 default_headers={
     "X-Toolken-Key": "tk_live_...",
-    "X-Provider": "openrouter",
-    "X-Toolken-Feature": "provider-comparison",
+    "X-Toolken-Provider": "openrouter",
+    "X-Toolken-Metadata-Feature": "provider-comparison",
 }
 ```
 
@@ -127,15 +127,15 @@ The dashboard attributes each request to its actual model, so cost comparisons s
 
 </Accordion>
 
-<Accordion title="Force a specific provider with X-Provider">
+<Accordion title="Force a specific provider with X-Toolken-Provider">
 
-By default the gateway detects the provider from the model name. To override that detection, set `X-Provider` explicitly. This is useful when two providers accept the same model name, or when you want to test the same model on different infrastructure.
+By default the gateway detects the provider from the model name. To override that detection, set `X-Toolken-Provider` explicitly. This is useful when two providers accept the same model name, or when you want to test the same model on different infrastructure.
 
 ```bash
 curl https://gateway.toolken.ai/v1/chat/completions \
   -H "Authorization: Bearer $YOUR_KEY" \
   -H "X-Toolken-Key: tk_live_..." \
-  -H "X-Provider: groq" \
+  -H "X-Toolken-Provider: groq" \
   -H "Content-Type: application/json" \
   -d '{"model":"llama-3.1-8b-instant","messages":[{"role":"user","content":"Hello"}]}'
 ```

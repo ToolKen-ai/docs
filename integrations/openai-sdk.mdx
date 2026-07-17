@@ -32,7 +32,7 @@ client = OpenAI(
     api_key="sk-...",              # your OpenAI key, forwarded untouched
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Meta-Agent": "my-agent",  # tag this client's traffic
+        "X-Toolken-Metadata-Agent": "my-agent",  # tag this client's traffic
     },
 )
 
@@ -51,7 +51,7 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,  // forwarded untouched
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Meta-Agent": "my-agent",  // tag this client's traffic
+    "X-Toolken-Metadata-Agent": "my-agent",  // tag this client's traffic
   },
 });
 
@@ -63,13 +63,13 @@ console.log(response.choices[0].message.content);
 ```
 </CodeGroup>
 
-<Tip>`X-Toolken-Meta-Agent` takes any string. Use one value per agent or workflow you want to track separately in the dashboard. Any `X-Toolken-Meta-*` header becomes a groupable dimension automatically.</Tip>
+<Tip>`X-Toolken-Metadata-Agent` takes any string. Use one value per agent or workflow you want to track separately in the dashboard. Any `X-Toolken-Metadata-*` header becomes a groupable dimension automatically.</Tip>
 
 </Step>
 
 <Step title="Attribute by customer (optional)">
 
-Add `X-Toolken-Customer-Id` to track spend per end-user or organization:
+Add `X-Toolken-Metadata-Customer-Id` to track spend per end-user or organization:
 
 <CodeGroup>
 ```python Python
@@ -78,8 +78,8 @@ client = OpenAI(
     api_key="sk-...",
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Meta-Agent": "document-summarizer",
-        "X-Toolken-Meta-Customer-Id": "org_abc123",
+        "X-Toolken-Metadata-Agent": "document-summarizer",
+        "X-Toolken-Metadata-Customer-Id": "org_abc123",
     },
 )
 ```
@@ -90,8 +90,8 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Meta-Agent": "document-summarizer",
-    "X-Toolken-Meta-Customer-Id": "org_abc123",
+    "X-Toolken-Metadata-Agent": "document-summarizer",
+    "X-Toolken-Metadata-Customer-Id": "org_abc123",
   },
 });
 ```
@@ -145,8 +145,8 @@ Toolken reads and strips its own `X-Toolken-*` headers before forwarding the req
 | --- | --- | --- |
 | `X-Toolken-Key: tk_live_...` | Toolken gateway | Stripped before forwarding |
 | `Authorization: Bearer sk-...` | OpenAI | Forwarded untouched |
-| `X-Toolken-Meta-Agent: ...` | Toolken gateway | Recorded as metadata key `agent`, then stripped |
-| `X-Toolken-Meta-Customer-Id: ...` | Toolken gateway | Recorded as metadata key `customer_id`, then stripped |
+| `X-Toolken-Metadata-Agent: ...` | Toolken gateway | Recorded as metadata key `agent`, then stripped |
+| `X-Toolken-Metadata-Customer-Id: ...` | Toolken gateway | Recorded as metadata key `customer_id`, then stripped |
 
 ## Next
 

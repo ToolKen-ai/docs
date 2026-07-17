@@ -85,12 +85,12 @@ Put the `env` block in a repo's `.claude/settings.json` to route or tag a single
 ```json
 {
   "env": {
-    "ANTHROPIC_CUSTOM_HEADERS": "X-Toolken-Key: tk_live_...\nX-Toolken-Meta-Project: web-app\nX-Toolken-Meta-Environment: dev"
+    "ANTHROPIC_CUSTOM_HEADERS": "X-Toolken-Key: tk_live_...\nX-Toolken-Metadata-Project: web-app\nX-Toolken-Metadata-Environment: dev"
   }
 }
 ```
 
-`X-Toolken-Meta-*` headers become attribution dimensions in the dashboard, so you can break cost down per project or environment.
+`X-Toolken-Metadata-*` headers become attribution dimensions in the dashboard, so you can break cost down per project or environment.
 
 <Warning>
 `ANTHROPIC_CUSTOM_HEADERS` is a single variable. A project value replaces the one from your base settings entirely. The levels do not merge, and `${ANTHROPIC_CUSTOM_HEADERS}` does not carry the base value in. Always repeat `X-Toolken-Key` alongside any per-project headers.
@@ -174,7 +174,7 @@ Anthropic's server-managed settings (configured through the Claude.ai admin cons
 | `X-Toolken-Key: tk_live_...` | Toolken gateway | Read for workspace auth, stripped before forwarding |
 | `ANTHROPIC_API_KEY` (`sk-ant-...`) | Anthropic | Sent as `x-api-key`, forwarded untouched. API key path only. |
 | Claude subscription login | Anthropic | Forwarded untouched as the auth bearer. Subscription path only. |
-| `X-Toolken-Meta-*` | Toolken gateway | Recorded as metadata, then stripped |
+| `X-Toolken-Metadata-*` | Toolken gateway | Recorded as metadata, then stripped |
 
 Toolken never stores your Anthropic credentials.
 
@@ -190,7 +190,7 @@ Claude Code natively sends attribution headers that Toolken captures with no ext
 
 So you can break usage down by session and by subagent out of the box. See Anthropic's [LLM gateway reference](https://code.claude.com/docs/en/llm-gateway).
 
-These are ephemeral session and agent IDs, not a developer identity, so they do not attribute cost to a specific person. Anything you set yourself (for example `X-Toolken-Meta-Session-Id`) takes precedence over the Claude Code value.
+These are ephemeral session and agent IDs, not a developer identity, so they do not attribute cost to a specific person. Anything you set yourself (for example `X-Toolken-Metadata-Session-Id`) takes precedence over the Claude Code value.
 
 <Note>
 Subscription routing depends on your Claude plan and Anthropic's gateway support. Anthropic can change or disable it at any time. For production and teams, the API key path is the durable default.

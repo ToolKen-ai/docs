@@ -3,50 +3,95 @@ title: "List Models"
 api: "GET https://gateway.toolken.ai/v1/models"
 ---
 
-Pass-through to the provider's model list endpoint. When no `X-Provider` header is set, the gateway routes to OpenAI. Override with `X-Provider` to list models from a different provider.
+Returns the list of models available through the gateway.
+
+**Default behavior (no `X-Toolken-Provider`):** responds with our own catalog of all supported models. The response is OpenAI-compatible by default. If your request includes an Anthropic hint header (`anthropic-version` or `anthropic-beta`), the same catalog is returned in Anthropic-compatible format instead. Only `X-Toolken-Key` is required — no provider key needed.
+
+**With `X-Toolken-Provider: <slug>`:** passes the request through to that provider's live model list endpoint. This path requires both `X-Toolken-Key` and your provider BYOK auth header.
 
 ## Headers
 
 <ParamField header="X-Toolken-Key" type="string" required>
   Your Toolken API key. Validated by the gateway and stripped before forwarding.
 </ParamField>
-<ParamField header="Authorization" type="string" required>
-  Your provider key in Bearer format (BYOK), e.g. `Bearer sk-...`. Forwarded untouched, never stored.
+<ParamField header="X-Toolken-Provider" type="string">
+  Pin to a specific provider (e.g. `openai`, `anthropic`, `gemini`, `mistral`). When set, the gateway passes the request through to that provider's live model list. Omit to use our catalog instead.
 </ParamField>
-<ParamField header="X-Provider" type="string">
-  Explicitly set the upstream provider (e.g. `openai`, `anthropic`, `gemini`, `mistral`). Optional -- the gateway defaults to OpenAI for this endpoint.
+<ParamField header="Authorization" type="string">
+  Your provider key in Bearer format (BYOK), e.g. `Bearer sk-...`. Required only for the provider-passthrough path (`X-Toolken-Provider` set). Forwarded untouched, never stored.
+</ParamField>
+<ParamField header="x-api-key" type="string">
+  Anthropic API key. Used instead of `Authorization` when routing to Anthropic. Required only for the provider-passthrough path with `X-Toolken-Provider: anthropic`.
+</ParamField>
+<ParamField header="anthropic-version" type="string">
+  If included, the catalog response is returned in Anthropic-compatible format (no `X-Toolken-Provider` needed). Forwarded to the provider on passthrough paths.
+</ParamField>
+<ParamField header="anthropic-beta" type="string">
+  Same as `anthropic-version` — triggers Anthropic-shaped response for the default catalog path.
 </ParamField>
 
 ## Response
 
+### Default catalog path (OpenAI shape)
+
 <ResponseField name="object" type="string">Always `list`.</ResponseField>
-<ResponseField name="data" type="array">Array of model objects. Each has `id`, `object` (`model`), `created` (Unix timestamp), and `owned_by`.</ResponseField>
+<ResponseField name="data" type="array">Array of model objects. Each has `id` (model name), `object` (`model`), `created` (Unix timestamp), and `owned_by` (provider slug).</ResponseField>
+
+### Default catalog path (Anthropic shape, when `anthropic-version` / `anthropic-beta` is present)
+
+<ResponseField name="data" type="array">Array of model objects in Anthropic format.</ResponseField>
+<ResponseField name="has_more" type="boolean">Always `false` — our catalog is returned in full.</ResponseField>
+<ResponseField name="first_id" type="string">ID of the first model in the list.</ResponseField>
+<ResponseField name="last_id" type="string">ID of the last model in the list.</ResponseField>
+
+### Provider-passthrough path
+
+Response shape is determined by the upstream provider and forwarded verbatim.
 
 <RequestExample>
 
-```bash cURL
+```bash Default catalog (OpenAI shape)
+curl https://gateway.toolken.ai/v1/models \
+  -H "X-Toolken-Key: tk_live_..."
+```
+
+```bash Default catalog (Anthropic shape)
 curl https://gateway.toolken.ai/v1/models \
   -H "X-Toolken-Key: tk_live_..." \
+  -H "anthropic-version: 2023-06-01"
+```
+
+```bash OpenAI passthrough
+curl https://gateway.toolken.ai/v1/models \
+  -H "X-Toolken-Key: tk_live_..." \
+  -H "X-Toolken-Provider: openai" \
   -H "Authorization: Bearer sk-..."
 ```
 
-```python Python
+```bash Anthropic passthrough
+curl https://gateway.toolken.ai/v1/models \
+  -H "X-Toolken-Key: tk_live_..." \
+  -H "X-Toolken-Provider: anthropic" \
+  -H "x-api-key: sk-ant-..."
+```
+
+```python Python (catalog)
 from openai import OpenAI
 
 client = OpenAI(
     base_url="https://gateway.toolken.ai/v1",
-    api_key="sk-...",
+    api_key="unused",
     default_headers={"X-Toolken-Key": "tk_live_..."},
 )
 client.models.list()
 ```
 
-```javascript Node
+```javascript Node (catalog)
 import OpenAI from "openai";
 
 const client = new OpenAI({
   baseURL: "https://gateway.toolken.ai/v1",
-  apiKey: "sk-...",
+  apiKey: "unused",
   defaultHeaders: { "X-Toolken-Key": "tk_live_..." },
 });
 await client.models.list();
@@ -56,18 +101,18 @@ await client.models.list();
 
 <ResponseExample>
 
-```json 200
+```json 200 (catalog, OpenAI shape)
 {
   "object": "list",
   "data": [
     {
-      "id": "gpt-4o",
+      "id": "claude-3-5-sonnet-20241022",
       "object": "model",
       "created": 1715367049,
-      "owned_by": "openai"
+      "owned_by": "anthropic"
     },
     {
-      "id": "gpt-4o-mini",
+      "id": "gpt-4o",
       "object": "model",
       "created": 1715368132,
       "owned_by": "openai"

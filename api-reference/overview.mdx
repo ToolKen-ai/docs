@@ -35,7 +35,7 @@ The gateway validates `X-Toolken-Key`, then strips it before forwarding so the p
 | `POST /v1/messages` | Anthropic Messages | Always routed to Anthropic |
 | `POST /v1/embeddings` | OpenAI Embeddings | Routes by model prefix |
 | `POST /v1/responses` | OpenAI Responses | Routes by model name |
-| `GET /v1/models` | OpenAI Models list | Defaults to OpenAI; override with `X-Provider` |
+| `GET /v1/models` | Model catalog | Served from Toolken's own catalog by default; set `X-Toolken-Provider` to proxy a specific provider's live list |
 | `POST /v1/audio` | OpenAI Audio | Speech, transcription, translation |
 | `POST /v1/images` | OpenAI Images | Generation (DALL-E, GPT Image) |
 
@@ -45,10 +45,10 @@ No endpoint is invented or proxied speculatively. Only the paths listed above ar
 
 The gateway detects the upstream provider in this order:
 
-1. Explicit `X-Provider` header (e.g. `X-Provider: gemini`) -- always wins
+1. Explicit `X-Toolken-Provider` header (e.g. `X-Toolken-Provider: gemini`) -- always wins
 2. Path: `/v1/messages` always routes to Anthropic
 3. Model name prefix (e.g. `gpt-*`, `o1-*` to OpenAI; `claude-*` to Anthropic; `gemini-*` to Google)
-4. Error -- cannot determine provider; attach `X-Provider` or include a recognizable model name
+4. Error -- cannot determine provider; attach `X-Toolken-Provider` or include a recognizable model name
 
 ## Attribution headers
 

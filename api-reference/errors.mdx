@@ -29,7 +29,7 @@ When the gateway itself cannot forward your request, it returns a JSON error bod
 
 | HTTP status | Code | Meaning | What to do |
 |-------------|------|---------|------------|
-| 400 | `invalid_provider` | The `X-Provider` header value is not a recognized provider name. | Check the header value against the [supported providers list](/api-reference/overview#provider-detection). |
+| 400 | `invalid_provider` | The `X-Toolken-Provider` header value is not a recognized provider name. | Check the header value against the [supported providers list](/api-reference/overview#provider-detection). |
 | 400 | `incompatible_path` | The detected provider does not support the requested path (e.g. a Claude model sent to `/v1/chat/completions`, or an OpenAI model sent to `/v1/messages`). | Use the correct path for the provider: `/v1/chat/completions` for OpenAI-compatible providers, `/v1/messages` for Anthropic. |
 | 401 | `missing_api_key` | The `X-Toolken-Key` header was not included in the request. | Add `X-Toolken-Key: <your-key>` to every request. |
 | 401 | `invalid_api_key` | The `X-Toolken-Key` value does not match any active API key in your workspace. | Verify the key is correct and has not been revoked in the Toolken dashboard. |

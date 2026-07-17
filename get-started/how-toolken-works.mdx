@@ -28,7 +28,7 @@ flowchart TD
 
 | | Roll your own | Toolken |
 | --- | --- | --- |
-| Per-agent cost | Parse usage from every response, join to a pricing table, store it | One `X-Toolken-Meta-Agent` header |
+| Per-agent cost | Parse usage from every response, join to a pricing table, store it | One `X-Toolken-Metadata-Agent` header |
 | New model pricing | Track every provider price change yourself | Priced at the gateway, kept current |
 | Latency added | None (you are inline) | One edge hop, off the response path |
 

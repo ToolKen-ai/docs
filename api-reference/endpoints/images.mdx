@@ -20,14 +20,14 @@ Image requests pass through to your provider and work today. They are not yet co
 <ParamField header="X-Toolken-Metadata" type="string">
   Primary attribution channel. JSON object of key-value pairs (e.g. `{"agent":"research-agent","customer_id":"cust_abc"}`). Each key becomes a groupable dimension in the dashboard.
 </ParamField>
-<ParamField header="X-Toolken-Meta-*" type="string">
-  Flat-header shorthand. `X-Toolken-Meta-Agent: research-agent` writes metadata key `agent`. Equivalent to sending the same key in `X-Toolken-Metadata`.
+<ParamField header="X-Toolken-Metadata-*" type="string">
+  Flat-header shorthand. `X-Toolken-Metadata-Agent: research-agent` writes metadata key `agent`. Equivalent to sending the same key in `X-Toolken-Metadata`.
 </ParamField>
-<ParamField header="X-Toolken-Feature" type="string">
-  Convenience alias. Writes the `feature` metadata key. Equivalent to `X-Toolken-Meta-Feature`.
+<ParamField header="X-Toolken-Metadata-Feature" type="string">
+  Sets the `feature` metadata key. Use to group costs by agent name, workflow, UI surface, or job type.
 </ParamField>
-<ParamField header="X-Toolken-Customer-Id" type="string">
-  Convenience alias. Writes the `customer_id` metadata key at lowest priority. Metadata channel takes precedence when both are set.
+<ParamField header="X-Toolken-Metadata-Customer-Id" type="string">
+  Sets the `customer_id` metadata key. Use to attribute costs to an end-customer, org slug, or account ID.
 </ParamField>
 
 ## Body

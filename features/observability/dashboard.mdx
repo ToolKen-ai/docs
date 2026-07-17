@@ -35,8 +35,8 @@ The dashboard surfaces everything Toolken records, organized into five views. Yo
 Every view has a group-by control. Pick any built-in dimension or any metadata key you've sent:
 
 - `model` or `provider` are available on every request.
-- `environment` and `session_id` appear once you start sending `X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id`.
-- Any other metadata key (`agent`, `customer_id`, `feature`, `tier`, ...) appears as soon as you send it via `X-Toolken-Meta-*` or `X-Toolken-Metadata`.
+- `environment` and `session_id` appear once you start sending `X-Toolken-Metadata-Environment` and `X-Toolken-Metadata-Session-Id`.
+- Any other metadata key (`agent`, `customer_id`, `feature`, `tier`, ...) appears as soon as you send it via `X-Toolken-Metadata-*` or `X-Toolken-Metadata`.
 
 Switch the group-by and the chart re-renders. No page reload, no extra config.
 
@@ -58,7 +58,7 @@ Filter by any metadata key (agent, customer, feature) to see whether a specific 
 
 ## Nothing to configure
 
-The dashboard works from traffic alone. If a request carries no tags, it shows up under model and provider. Add any `X-Toolken-Meta-*` header and that metadata key appears in the group-by controls automatically.
+The dashboard works from traffic alone. If a request carries no tags, it shows up under model and provider. Add any `X-Toolken-Metadata-*` header and that metadata key appears in the group-by controls automatically.
 
 ## Next
 

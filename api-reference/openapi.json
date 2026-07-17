@@ -71,7 +71,7 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "Model identifier. The gateway infers the provider from the model name prefix (e.g. gpt-*, o1-*, claude-*, gemini-*). Override with X-Provider if needed.",
+            "description": "Model identifier. The gateway infers the provider from the model name prefix (e.g. gpt-*, o1-*, claude-*, gemini-*). Override with X-Toolken-Provider if needed.",
             "example": "gpt-4o"
           },
           "messages": {
@@ -390,29 +390,29 @@
         "description": "Anthropic API key (e.g. `sk-ant-...`). Used instead of Authorization for Anthropic requests. The Anthropic SDK injects this automatically. Forwarded verbatim by the gateway.",
         "schema": { "type": "string", "example": "sk-ant-api03-..." }
       },
-      "ToolkenFeatureHeader": {
-        "name": "X-Toolken-Feature",
+      "ToolkenMetadataFeatureHeader": {
+        "name": "X-Toolken-Metadata-Feature",
         "in": "header",
         "required": false,
-        "description": "Convenience alias. Writes the 'feature' metadata key. Equivalent to X-Toolken-Meta-Feature. Not a reserved dimension -- 'feature' is a regular metadata key stored alongside any other custom property.",
+        "description": "Sets the 'feature' metadata key. Use to group costs by agent name, workflow, UI surface, or job type. Equivalent to X-Toolken-Metadata: {\"feature\": \"...\"}.",
         "schema": { "type": "string", "example": "chat" }
       },
-      "ToolkenCustomerIdHeader": {
-        "name": "X-Toolken-Customer-Id",
+      "ToolkenMetadataCustomerIdHeader": {
+        "name": "X-Toolken-Metadata-Customer-Id",
         "in": "header",
         "required": false,
-        "description": "Convenience alias. Writes the 'customer_id' metadata key at the lowest priority. The metadata channel (X-Toolken-Metadata / X-Toolken-Meta-Customer-Id) takes precedence if also set. Not a reserved dimension.",
+        "description": "Sets the 'customer_id' metadata key. Use to attribute costs to an end-customer, org slug, or account ID. Equivalent to X-Toolken-Metadata: {\"customer_id\": \"...\"}.",
         "schema": { "type": "string", "example": "cust_abc123" }
       },
       "ToolkenMetadataHeader": {
         "name": "X-Toolken-Metadata",
         "in": "header",
         "required": false,
-        "description": "Primary attribution channel. JSON object of arbitrary key-value pairs. All keys surface as dimensions in the Toolken dashboard. Limits: up to 16384 bytes, up to 64 keys, and each key must match ^_?[a-z][a-z0-9_]{0,63}$. The reserved keys environment and session_id must be set via X-Toolken-Meta-Environment / X-Toolken-Meta-Session-Id headers instead of X-Toolken-Metadata. Invalid JSON is ignored silently with no error; a well-formed object that exceeds the size or key limits or uses an invalid key returns 422 invalid_metadata. Example: {\"agent\": \"research-agent\", \"customer_id\": \"cust_abc\"}.",
+        "description": "Primary attribution channel. JSON object of arbitrary key-value pairs. All keys surface as dimensions in the Toolken dashboard. Limits: up to 16384 bytes, up to 64 keys, and each key must match ^_?[a-z][a-z0-9_]{0,63}$. The reserved keys environment and session_id must be set via X-Toolken-Metadata-Environment / X-Toolken-Metadata-Session-Id headers instead of X-Toolken-Metadata. Invalid JSON is ignored silently with no error; a well-formed object that exceeds the size or key limits or uses an invalid key returns 422 invalid_metadata. Example: {\"agent\": \"research-agent\", \"customer_id\": \"cust_abc\"}.",
         "schema": { "type": "string", "example": "{\"agent\": \"research-agent\", \"customer_id\": \"cust_abc\"}" }
       },
       "XProviderHeader": {
-        "name": "X-Provider",
+        "name": "X-Toolken-Provider",
         "in": "header",
         "required": false,
         "description": "Explicitly set the upstream provider (e.g. 'openai', 'anthropic', 'gemini', 'mistral'). Optional -- the gateway infers the provider from the model name or path. Use this header when the model name is ambiguous.",
@@ -508,11 +508,11 @@
         "operationId": "chatCompletions",
         "tags": ["Gateway API"],
         "summary": "Chat Completions (Gateway)",
-        "description": "Pass-through to the provider's standard chat completions endpoint. The request and response bodies follow the OpenAI Chat Completions schema exactly. The gateway infers the provider from the model name prefix (e.g. `gpt-*` routes to OpenAI, `claude-*` routes to Anthropic via this path is not supported -- use /v1/messages for Anthropic). Override with `X-Provider` for ambiguous models.",
+        "description": "Pass-through to the provider's standard chat completions endpoint. The request and response bodies follow the OpenAI Chat Completions schema exactly. The gateway infers the provider from the model name prefix (e.g. `gpt-*` routes to OpenAI, `claude-*` routes to Anthropic via this path is not supported -- use /v1/messages for Anthropic). Override with `X-Toolken-Provider` for ambiguous models.",
         "parameters": [
           { "$ref": "#/components/parameters/AuthorizationHeader" },
-          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
-          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataCustomerIdHeader" },
           { "$ref": "#/components/parameters/ToolkenMetadataHeader" },
           { "$ref": "#/components/parameters/XProviderHeader" }
         ],
@@ -553,7 +553,7 @@
             }
           },
           "422": {
-            "description": "Attribution metadata in X-Toolken-Metadata is not valid JSON or contains invalid keys.",
+            "description": "X-Toolken-Metadata contains valid JSON that violates key-name, size, or key-count limits. Malformed JSON is silently ignored and never returns 422.",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -582,8 +582,8 @@
         "description": "Pass-through to Anthropic's Messages API. Requests to `/v1/messages` are automatically routed to Anthropic regardless of model name. Use your Anthropic SDK with `base_url` set to `https://gateway.toolken.ai` -- the SDK appends `/v1/messages` automatically. Include `x-api-key` (your Anthropic key) alongside `X-Toolken-Key`. Request and response bodies follow the Anthropic Messages schema exactly.",
         "parameters": [
           { "$ref": "#/components/parameters/XApiKeyHeader" },
-          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
-          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataCustomerIdHeader" },
           { "$ref": "#/components/parameters/ToolkenMetadataHeader" }
         ],
         "requestBody": {
@@ -623,7 +623,7 @@
             }
           },
           "422": {
-            "description": "Attribution metadata is invalid.",
+            "description": "X-Toolken-Metadata contains valid JSON that violates key-name, size, or key-count limits. Malformed JSON is silently ignored and never returns 422.",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -652,8 +652,8 @@
         "description": "Pass-through to the provider's embeddings endpoint. Request and response bodies follow the OpenAI Embeddings schema. The provider is inferred from the model name (e.g. `text-embedding-*` routes to OpenAI).",
         "parameters": [
           { "$ref": "#/components/parameters/AuthorizationHeader" },
-          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
-          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataCustomerIdHeader" },
           { "$ref": "#/components/parameters/ToolkenMetadataHeader" },
           { "$ref": "#/components/parameters/XProviderHeader" }
         ],
@@ -690,7 +690,7 @@
             }
           },
           "422": {
-            "description": "Attribution metadata is invalid.",
+            "description": "X-Toolken-Metadata contains valid JSON that violates key-name, size, or key-count limits. Malformed JSON is silently ignored and never returns 422.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
             }
@@ -715,8 +715,8 @@
         "description": "Pass-through to the OpenAI Responses API (`/v1/responses`). Request and response bodies follow the standard OpenAI Responses schema. Provider is inferred from the model name.",
         "parameters": [
           { "$ref": "#/components/parameters/AuthorizationHeader" },
-          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
-          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataCustomerIdHeader" },
           { "$ref": "#/components/parameters/ToolkenMetadataHeader" },
           { "$ref": "#/components/parameters/XProviderHeader" }
         ],
@@ -753,7 +753,7 @@
             }
           },
           "422": {
-            "description": "Attribution metadata is invalid.",
+            "description": "X-Toolken-Metadata contains valid JSON that violates key-name, size, or key-count limits. Malformed JSON is silently ignored and never returns 422.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
             }
@@ -775,9 +775,22 @@
         "operationId": "listModels",
         "tags": ["Gateway API"],
         "summary": "List Models (Gateway)",
-        "description": "Pass-through to the provider's model list endpoint. When no `X-Provider` header is set, the gateway routes to OpenAI. Override with `X-Provider` to list models from a different provider.",
+        "description": "Returns available models. Without `X-Toolken-Provider`, the gateway responds with its own catalog of all supported models -- only `X-Toolken-Key` is required. With `X-Toolken-Provider: <slug>`, the request is forwarded to that provider's live model list endpoint and requires the matching BYOK provider auth header (`Authorization` for OpenAI-compatible providers, `x-api-key` for Anthropic).",
         "parameters": [
-          { "$ref": "#/components/parameters/AuthorizationHeader" },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "description": "Provider API key in Bearer format (e.g. `Bearer sk-...`). Required only when `X-Toolken-Provider` is set and the target provider uses OpenAI-compatible auth. Forwarded verbatim, never stored.",
+            "schema": { "type": "string", "example": "Bearer sk-proj-..." }
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "description": "Anthropic API key (e.g. `sk-ant-...`). Required only when `X-Toolken-Provider: anthropic` is set. Forwarded verbatim, never stored.",
+            "schema": { "type": "string", "example": "sk-ant-api03-..." }
+          },
           { "$ref": "#/components/parameters/XProviderHeader" }
         ],
         "responses": {
@@ -811,8 +824,8 @@
         "description": "Pass-through to the provider's audio endpoint (speech, transcription, translation). Request and response bodies follow the standard OpenAI Audio API schema. Provider is inferred from the model name (e.g. `tts-1`, `whisper-1` route to OpenAI).",
         "parameters": [
           { "$ref": "#/components/parameters/AuthorizationHeader" },
-          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
-          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataCustomerIdHeader" },
           { "$ref": "#/components/parameters/ToolkenMetadataHeader" },
           { "$ref": "#/components/parameters/XProviderHeader" }
         ],
@@ -858,7 +871,7 @@
             }
           },
           "422": {
-            "description": "Attribution metadata is invalid.",
+            "description": "X-Toolken-Metadata contains valid JSON that violates key-name, size, or key-count limits. Malformed JSON is silently ignored and never returns 422.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
             }
@@ -883,8 +896,8 @@
         "description": "Pass-through to the provider's images endpoint (generation, editing, variations). Request and response bodies follow the standard OpenAI Images API schema. Provider is inferred from the model name (e.g. `dall-e-3`, `gpt-image-1` route to OpenAI).",
         "parameters": [
           { "$ref": "#/components/parameters/AuthorizationHeader" },
-          { "$ref": "#/components/parameters/ToolkenFeatureHeader" },
-          { "$ref": "#/components/parameters/ToolkenCustomerIdHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataFeatureHeader" },
+          { "$ref": "#/components/parameters/ToolkenMetadataCustomerIdHeader" },
           { "$ref": "#/components/parameters/ToolkenMetadataHeader" },
           { "$ref": "#/components/parameters/XProviderHeader" }
         ],
@@ -921,7 +934,7 @@
             }
           },
           "422": {
-            "description": "Attribution metadata is invalid.",
+            "description": "X-Toolken-Metadata contains valid JSON that violates key-name, size, or key-count limits. Malformed JSON is silently ignored and never returns 422.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } }
             }

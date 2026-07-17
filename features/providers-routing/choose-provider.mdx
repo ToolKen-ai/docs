@@ -1,6 +1,6 @@
 ---
 title: "Choosing a Provider"
-description: "The gateway picks the right provider automatically. Use X-Provider to be explicit or to reach ambiguous models."
+description: "The gateway picks the right provider automatically. Use X-Toolken-Provider to be explicit or to reach ambiguous models."
 icon: "sliders"
 ---
 
@@ -12,8 +12,8 @@ The gateway resolves the provider in this order:
 
 <Steps>
 
-<Step title="X-Provider header (if present)">
-If you set `X-Provider`, that value wins immediately. An unknown value returns a `400 invalid_provider` error.
+<Step title="X-Toolken-Provider header (if present)">
+If you set `X-Toolken-Provider`, that value wins immediately. An unknown value returns a `400 invalid_provider` error.
 </Step>
 
 <Step title="Request path">
@@ -25,20 +25,20 @@ The gateway matches the model name against a prefix map and an exact-match catal
 </Step>
 
 <Step title="Error">
-If none of the above resolves to a provider, the gateway returns `400 invalid_provider` and tells you to set `X-Provider`.
+If none of the above resolves to a provider, the gateway returns `400 invalid_provider` and tells you to set `X-Toolken-Provider`.
 </Step>
 
 </Steps>
 
-## When to use X-Provider
+## When to use X-Toolken-Provider
 
-Auto-detection covers most cases. Set `X-Provider` when:
+Auto-detection covers most cases. Set `X-Toolken-Provider` when:
 
 - You are routing through **OpenRouter** (model names like `meta-llama/llama-3.3-70b-instruct` overlap with real provider prefixes, so auto-detection is disabled for OpenRouter).
 - You are using a **provider-hosted open-source model** whose name does not carry a provider prefix (e.g. `llama-3.3-70b` on Together AI or Cerebras).
 - You want to be **explicit in production** code so a model rename never silently changes the provider.
 
-## Sending X-Provider
+## Sending X-Toolken-Provider
 
 Add the header alongside your existing headers. The value is the lowercase provider name.
 
@@ -51,7 +51,7 @@ client = OpenAI(
     api_key="sk-or-...",  # your OpenRouter key, forwarded untouched
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Provider": "openrouter",
+        "X-Toolken-Provider": "openrouter",
     },
 )
 client.chat.completions.create(
@@ -68,7 +68,7 @@ const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY, // forwarded untouched
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Provider": "openrouter",
+    "X-Toolken-Provider": "openrouter",
   },
 });
 await client.chat.completions.create({
@@ -81,7 +81,7 @@ await client.chat.completions.create({
 curl https://gateway.toolken.ai/v1/chat/completions \
   -H "Authorization: Bearer $OPENROUTER_API_KEY" \
   -H "X-Toolken-Key: tk_live_..." \
-  -H "X-Provider: openrouter" \
+  -H "X-Toolken-Provider: openrouter" \
   -H "Content-Type: application/json" \
   -d '{"model":"meta-llama/llama-3.3-70b-instruct","messages":[{"role":"user","content":"Hello"}]}'
 ```
@@ -89,26 +89,26 @@ curl https://gateway.toolken.ai/v1/chat/completions \
 
 ## Provider and path must be compatible
 
-The gateway validates that the provider supports the path you are calling. Anthropic only handles `/v1/messages`; every other provider handles the OpenAI-compatible paths (`/v1/chat/completions`, `/v1/embeddings`, etc.). Sending a `claude-` model to `/v1/chat/completions` without `X-Provider` is fine: the gateway detects Anthropic and returns `400 incompatible_path` because Anthropic requires `/v1/messages`. The error message tells you exactly what to fix.
+The gateway validates that the provider supports the path you are calling. Anthropic handles `/v1/messages` and `/v1/models`; every other provider handles the OpenAI-compatible paths (`/v1/chat/completions`, `/v1/embeddings`, etc.). Sending a `claude-` model to `/v1/chat/completions` without `X-Toolken-Provider` is fine: the gateway detects Anthropic and returns `400 incompatible_path` because Anthropic requires `/v1/messages`. The error message tells you exactly what to fix.
 
 <Tip>If you get `incompatible_path`, check that your base URL and model match. Anthropic SDK users: set `base_url` to `https://gateway.toolken.ai` (without `/v1`) and the SDK appends `/v1/messages` automatically.</Tip>
 
-## X-Provider reference
+## X-Toolken-Provider reference
 
 | Value | Provider | Notes |
 | --- | --- | --- |
 | `openai` | OpenAI | Usually auto-detected from `gpt-`, `o1-`, `o3-`, `o4-` prefixes |
 | `anthropic` | Anthropic | Auto-detected from `claude-` prefix and `/v1/messages` path |
 | `gemini` | Google Gemini | Auto-detected from `gemini-` prefix |
-| `groq` | Groq | Requires `X-Provider` |
+| `groq` | Groq | Requires `X-Toolken-Provider` |
 | `mistral` | Mistral | Auto-detected from `mistral-`, `codestral-`, and related prefixes |
 | `deepseek` | DeepSeek | Auto-detected from `deepseek-` prefix |
-| `together` | Together AI | Requires `X-Provider` |
+| `together` | Together AI | Requires `X-Toolken-Provider` |
 | `minimax` | MiniMax | Auto-detected from `minimax-`, `abab-` prefixes |
 | `xai` | xAI | Auto-detected from `grok-` prefix |
-| `openrouter` | OpenRouter | Always requires `X-Provider` |
-| `cerebras` | Cerebras | Requires `X-Provider` |
-| `fireworks` | Fireworks | Requires `X-Provider` |
+| `openrouter` | OpenRouter | Always requires `X-Toolken-Provider` |
+| `cerebras` | Cerebras | Requires `X-Toolken-Provider` |
+| `fireworks` | Fireworks | Requires `X-Toolken-Provider` |
 | `perplexity` | Perplexity | Auto-detected from `sonar-` prefix |
 
 ## Next

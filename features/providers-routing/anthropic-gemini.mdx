@@ -74,7 +74,7 @@ The Anthropic SDK injects `x-api-key` from its `api_key` parameter. Toolken read
 
 ### Provider detection for Anthropic
 
-Any request to `/v1/messages` routes to Anthropic automatically. A model name starting with `claude-` also triggers auto-detection to Anthropic. You do not need `X-Provider` for Anthropic unless you are sending to a path other than `/v1/messages`.
+Any request to `/v1/messages` routes to Anthropic automatically. A model name starting with `claude-` also triggers auto-detection to Anthropic. You do not need `X-Toolken-Provider` for Anthropic unless you are sending to a path other than `/v1/messages` (for example, `/v1/models`). Setting the header selects the provider but does not bypass path validation: Anthropic only supports `/v1/messages` and `/v1/models`.
 
 ---
 
@@ -132,7 +132,7 @@ The gateway rewrites the OpenAI-compatible request to Gemini's `generateContent`
 
 ### Provider detection for Gemini
 
-Model names starting with `gemini-` are auto-detected. No `X-Provider` header needed.
+Model names starting with `gemini-` are auto-detected. No `X-Toolken-Provider` header needed.
 
 <Tip>There is no separate Gemini-native endpoint on the Toolken gateway. Use `/v1/chat/completions` with a `gemini-` model name.</Tip>
 
@@ -142,5 +142,5 @@ Model names starting with `gemini-` are auto-detected. No `X-Provider` header ne
 
 <CardGroup cols={2}>
   <Card title="Providers Overview" icon="route" href="/features/providers-routing/overview">All 13 providers and the BYOK model.</Card>
-  <Card title="Choose a Provider" icon="sliders" href="/features/providers-routing/choose-provider">Detection order and when to use `X-Provider`.</Card>
+  <Card title="Choose a Provider" icon="sliders" href="/features/providers-routing/choose-provider">Detection order and when to use `X-Toolken-Provider`.</Card>
 </CardGroup>

@@ -22,7 +22,7 @@ One edge hop. No extra infrastructure. No per-provider glue code.
   <Thead>
     <Tr>
       <Th>Provider</Th>
-      <Th>Name value (for `X-Provider`)</Th>
+      <Th>Name value (for `X-Toolken-Provider`)</Th>
       <Th>Auto-detected from model?</Th>
     </Tr>
   </Thead>
@@ -30,20 +30,20 @@ One edge hop. No extra infrastructure. No per-provider glue code.
     <Tr><Td>OpenAI</Td><Td>`openai`</Td><Td>Yes (`gpt-`, `o1-`, `o3-`, `o4-`, `dall-e-`, `tts-`, `whisper-`, ...)</Td></Tr>
     <Tr><Td>Anthropic</Td><Td>`anthropic`</Td><Td>Yes (`claude-`) and any request to `/v1/messages`</Td></Tr>
     <Tr><Td>Google Gemini</Td><Td>`gemini`</Td><Td>Yes (`gemini-`)</Td></Tr>
-    <Tr><Td>Groq</Td><Td>`groq`</Td><Td>Via `X-Provider`</Td></Tr>
+    <Tr><Td>Groq</Td><Td>`groq`</Td><Td>Via `X-Toolken-Provider`</Td></Tr>
     <Tr><Td>Mistral</Td><Td>`mistral`</Td><Td>Yes (`mistral-`, `codestral-`, `pixtral-`, `ministral-`, `devstral-`, ...)</Td></Tr>
     <Tr><Td>DeepSeek</Td><Td>`deepseek`</Td><Td>Yes (`deepseek-`)</Td></Tr>
-    <Tr><Td>Together AI</Td><Td>`together`</Td><Td>Via `X-Provider`</Td></Tr>
+    <Tr><Td>Together AI</Td><Td>`together`</Td><Td>Via `X-Toolken-Provider`</Td></Tr>
     <Tr><Td>MiniMax</Td><Td>`minimax`</Td><Td>Yes (`minimax-`, `abab-`, ...)</Td></Tr>
     <Tr><Td>xAI</Td><Td>`xai`</Td><Td>Yes (`grok-`)</Td></Tr>
-    <Tr><Td>OpenRouter</Td><Td>`openrouter`</Td><Td>No - always use `X-Provider: openrouter`</Td></Tr>
-    <Tr><Td>Cerebras</Td><Td>`cerebras`</Td><Td>Via `X-Provider`</Td></Tr>
-    <Tr><Td>Fireworks</Td><Td>`fireworks`</Td><Td>Via `X-Provider`</Td></Tr>
+    <Tr><Td>OpenRouter</Td><Td>`openrouter`</Td><Td>No - always use `X-Toolken-Provider: openrouter`</Td></Tr>
+    <Tr><Td>Cerebras</Td><Td>`cerebras`</Td><Td>Via `X-Toolken-Provider`</Td></Tr>
+    <Tr><Td>Fireworks</Td><Td>`fireworks`</Td><Td>Via `X-Toolken-Provider`</Td></Tr>
     <Tr><Td>Perplexity</Td><Td>`perplexity`</Td><Td>Yes (`sonar-`)</Td></Tr>
   </Tbody>
 </Table>
 
-<Note>OpenRouter model names use `vendor/model` notation that overlaps with real provider prefixes, so auto-detection is intentionally disabled. Always set `X-Provider: openrouter` when routing through OpenRouter.</Note>
+<Note>OpenRouter model names use `vendor/model` notation that overlaps with real provider prefixes, so auto-detection is intentionally disabled. Always set `X-Toolken-Provider: openrouter` when routing through OpenRouter.</Note>
 
 ## BYOK: you own your keys
 
@@ -53,11 +53,11 @@ See [Authentication](/get-started/authentication) for the two-key model.
 
 ## OpenRouter: hundreds of models through one provider
 
-Setting `X-Provider: openrouter` routes your request to OpenRouter, which aggregates hundreds of upstream models under a single OpenAI-compatible surface. It is the fastest way to reach models from providers not listed above or to compare outputs across providers.
+Setting `X-Toolken-Provider: openrouter` routes your request to OpenRouter, which aggregates hundreds of upstream models under a single OpenAI-compatible surface. It is a convenient way to reach models from providers not listed above or to compare outputs across providers.
 
 ## Next
 
 <CardGroup cols={2}>
-  <Card title="Choose a Provider" icon="sliders" href="/features/providers-routing/choose-provider">How the gateway picks a provider, and how to override it with `X-Provider`.</Card>
+  <Card title="Choose a Provider" icon="sliders" href="/features/providers-routing/choose-provider">How the gateway picks a provider, and how to override it with `X-Toolken-Provider`.</Card>
   <Card title="Anthropic & Gemini" icon="sparkles" href="/features/providers-routing/anthropic-gemini">Using Anthropic's native Messages API and Gemini through the OpenAI-compatible endpoint.</Card>
 </CardGroup>

@@ -34,12 +34,12 @@ llm = LLM(
     api_key="sk-...",          # your provider key (BYOK), forwarded untouched
     extra_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Meta-Agent": "research-agent",
+        "X-Toolken-Metadata-Agent": "research-agent",
     },
 )
 ```
 
-`X-Toolken-Meta-Agent` is the metadata key that groups this agent's spend in the dashboard. Use any string that is meaningful to you.
+`X-Toolken-Metadata-Agent` is the metadata key that groups this agent's spend in the dashboard. Use any string that is meaningful to you.
 
 </Step>
 
@@ -71,7 +71,7 @@ Run your crew. Within seconds, calls appear in the Toolken dashboard grouped und
 </Steps>
 
 <Tip>
-Give each agent its own `LLM` instance with a distinct `X-Toolken-Meta-Agent` value to split spend per agent in the dashboard. For example, define one `LLM` for your researcher with `"X-Toolken-Meta-Agent": "research-agent"` and a separate one for your writer with `"X-Toolken-Meta-Agent": "writer-agent"`. The dashboard breaks cost and tokens down by agent so you can see exactly which agent is driving spend.
+Give each agent its own `LLM` instance with a distinct `X-Toolken-Metadata-Agent` value to split spend per agent in the dashboard. For example, define one `LLM` for your researcher with `"X-Toolken-Metadata-Agent": "research-agent"` and a separate one for your writer with `"X-Toolken-Metadata-Agent": "writer-agent"`. The dashboard breaks cost and tokens down by agent so you can see exactly which agent is driving spend.
 </Tip>
 
 ## Next

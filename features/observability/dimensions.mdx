@@ -21,25 +21,27 @@ These two keys are always available for filtering and grouping, with consistent 
 
 | Dimension | Header | Example values |
 | --- | --- | --- |
-| `environment` | `X-Toolken-Meta-Environment` | `production`, `staging`, `dev` |
-| `session_id` | `X-Toolken-Meta-Session-Id` | `sess_abc123` |
+| `environment` | `X-Toolken-Metadata-Environment` | `production`, `staging`, `dev` |
+| `session_id` | `X-Toolken-Metadata-Session-Id` | `sess_abc123` |
 
-Set them with `X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id`. They appear in the dashboard once you start sending them.
+Set them with `X-Toolken-Metadata-Environment` and `X-Toolken-Metadata-Session-Id`. They appear in the dashboard once you start sending them.
 
 ## Custom dimensions
 
-Any safe key you send via `X-Toolken-Metadata` or `X-Toolken-Meta-*` becomes a dimension automatically. Keys must match `^_?[a-z][a-z0-9_]{0,63}$`, with a 16384-byte (16 KB) total metadata limit and up to 64 keys per request. The reserved keys `environment` and `session_id` are set via their dedicated headers (`X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id`) and cannot be sent through `X-Toolken-Metadata`. Common examples:
+Any safe key you send via `X-Toolken-Metadata` or `X-Toolken-Metadata-*` becomes a dimension automatically. Keys must match `^_?[a-z][a-z0-9_]{0,63}$`, with a 16384-byte (16 KB) total metadata limit and up to 64 keys per request. The reserved keys `environment` and `session_id` are set via their dedicated headers (`X-Toolken-Metadata-Environment` and `X-Toolken-Metadata-Session-Id`) and cannot be sent through `X-Toolken-Metadata`. Common examples:
 
 | What you want to slice by | Header to send | Metadata key |
 | --- | --- | --- |
-| Agent name | `X-Toolken-Meta-Agent: research-agent` | `agent` |
-| Customer ID | `X-Toolken-Meta-Customer-Id: cust_acme` | `customer_id` |
-| Feature or workflow | `X-Toolken-Meta-Feature: report-gen` | `feature` |
-| Any other property | `X-Toolken-Meta-<Key>: <value>` | `<key>` |
+| Agent name | `X-Toolken-Metadata-Agent: research-agent` | `agent` |
+| Customer ID | `X-Toolken-Metadata-Customer-Id: cust_acme` | `customer_id` |
+| Feature or workflow | `X-Toolken-Metadata-Feature: report-gen` | `feature` |
+| Any other property | `X-Toolken-Metadata-<Key>: <value>` | `<key>` |
 
 There is no list to register from. Send a key once and it shows up in the group-by control immediately.
 
-<Tip>Use `X-Toolken-Meta-Agent` to attribute spend per agent. Group by `agent` in the Cost view to see one cost line per agent name.</Tip>
+<Tip>Use `X-Toolken-Metadata-Agent` to attribute spend per agent. Group by `agent` in the Cost view to see one cost line per agent name.</Tip>
+
+<Note>Per-key `X-Toolken-Metadata-*` headers are server-to-server. A CORS preflight cannot allow a header prefix, so direct browser (client-side) requests must send attribution as JSON in the single `X-Toolken-Metadata` header instead.</Note>
 
 ## How grouping works
 
@@ -67,7 +69,7 @@ A request with no tags has `model` and `provider` only. It shows up under those 
 
 ## Adding a dimension you haven't sent yet
 
-Send the header once and it appears in the dashboard. There's no schema to define upfront. If you add `X-Toolken-Meta-Agent: batch-job` to a new workflow today, that value starts showing in your Cost view immediately.
+Send the header once and it appears in the dashboard. There's no schema to define upfront. If you add `X-Toolken-Metadata-Agent: batch-job` to a new workflow today, that value starts showing in your Cost view immediately.
 
 ## Next
 

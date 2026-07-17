@@ -35,18 +35,18 @@ models:
     requestOptions:
       headers:
         X-Toolken-Key: tk_live_...
-        X-Toolken-Meta-Agent: continue
+        X-Toolken-Metadata-Agent: continue
 ```
 
 `apiKey` is your provider key (BYOK). It is sent as `Authorization: Bearer` and forwarded untouched. `X-Toolken-Key` authenticates you to Toolken and is stripped before the request reaches your provider.
 
-<Tip>Set `X-Toolken-Meta-Agent` to any string that identifies this model in your dashboard. You can define multiple Toolken model entries with different `X-Toolken-Meta-Agent` values to break spend down by use case.</Tip>
+<Tip>Set `X-Toolken-Metadata-Agent` to any string that identifies this model in your dashboard. You can define multiple Toolken model entries with different `X-Toolken-Metadata-Agent` values to break spend down by use case.</Tip>
 
 </Step>
 
 <Step title="Select the model in Continue">
 
-Open the Continue panel in your editor, switch to the `Toolken GPT-4o mini` model (or whatever you named it), and make a request. Continue attaches `X-Toolken-Key` and `X-Toolken-Meta-Agent` automatically via `requestOptions.headers`.
+Open the Continue panel in your editor, switch to the `Toolken GPT-4o mini` model (or whatever you named it), and make a request. Continue attaches `X-Toolken-Key` and `X-Toolken-Metadata-Agent` automatically via `requestOptions.headers`.
 
 </Step>
 

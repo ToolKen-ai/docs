@@ -11,10 +11,8 @@ These headers are read and stripped by the gateway before the request is forward
 |--------|----------|-------------|
 | `X-Toolken-Key` | Yes | Your Toolken API key. Identifies your workspace. Validated against the gateway and stripped before forwarding. Requests without this header are rejected with `401 missing_api_key`. |
 | `X-Toolken-Metadata` | No | A JSON object of arbitrary attribution key-value pairs (e.g. `{"agent": "research-agent", "customer_id": "cust_abc"}`). All keys surface as dimensions in the dashboard. Primary attribution channel. See [Metadata limits](#metadata-limits) below for size and key rules. |
-| `X-Toolken-Meta-*` | No | Flat-header shorthand for metadata. The suffix after `X-Toolken-Meta-` is lowercased and converted from kebab-case to snake_case as the key (e.g. `X-Toolken-Meta-Agent` sets `agent`, `X-Toolken-Meta-Customer-Id` sets `customer_id`). Equivalent to sending the same key in `X-Toolken-Metadata`. |
-| `X-Toolken-Feature` | No | Convenience alias. Writes the `feature` metadata key. Equivalent to `X-Toolken-Meta-Feature`. Not a reserved dimension. |
-| `X-Toolken-Customer-Id` | No | Convenience alias. Writes the `customer_id` metadata key at the lowest priority. Used when no metadata-channel value overrides it (see precedence note below). Not a reserved dimension. |
-| `X-Provider` | No | Explicitly set the upstream provider (e.g. `openai`, `anthropic`, `gemini`, `mistral`, `deepseek`). Optional -- the gateway infers the provider from the model name or path. Use when the model name is ambiguous. |
+| `X-Toolken-Metadata-*` | No | Flat-header shorthand for metadata. The suffix after `X-Toolken-Metadata-` is lowercased and converted from kebab-case to snake_case as the key (e.g. `X-Toolken-Metadata-Agent` sets `agent`, `X-Toolken-Metadata-Customer-Id` sets `customer_id`). Equivalent to sending the same key in `X-Toolken-Metadata`. The gateway also accepts the legacy `X-Toolken-Meta-*` form (e.g. `X-Toolken-Meta-Agent`) for backward compatibility; new integrations should use `X-Toolken-Metadata-*`. |
+| `X-Toolken-Provider` | No | Explicitly set the upstream provider (e.g. `openai`, `anthropic`, `gemini`, `mistral`, `deepseek`). Optional -- the gateway infers the provider from the model name or path. Use when the model name is ambiguous. |
 
 ## BYOK provider credential headers
 
@@ -37,15 +35,15 @@ When you route Claude Code through Toolken, Claude Code automatically sends thes
 | `X-Claude-Code-Agent-Id` | Subagent or teammate requests only | `agent_id` metadata | Ephemeral per-spawn ID |
 | `X-Claude-Code-Parent-Agent-Id` | Nested agent requests only | `parent_agent_id` metadata | Ephemeral per-spawn ID |
 
-These are the lowest-priority source for each key. If you also send `X-Toolken-Meta-Session-Id` (or any other metadata header that sets the same key), your value takes precedence. The IDs identify sessions and agents, not individual people.
+These are the lowest-priority source for each key. If you also send `X-Toolken-Metadata-Session-Id` (or any other metadata header that sets the same key), your value takes precedence. The IDs identify sessions and agents, not individual people.
 
 ## customer_id precedence
 
 When multiple sources set `customer_id`, the gateway applies this order (highest priority first):
 
-1. `customer_id` key inside the `X-Toolken-Metadata` JSON object
-2. `X-Toolken-Meta-Customer-Id` header
-3. `X-Toolken-Customer-Id` header (fallback)
+1. `metadata.customer_id` in the JSON request body
+2. `customer_id` key inside the `X-Toolken-Metadata` header JSON object
+3. `X-Toolken-Metadata-Customer-Id` header (or legacy `X-Toolken-Meta-Customer-Id`)
 
 ## Reserved keys
 
@@ -53,17 +51,17 @@ Two metadata keys have dedicated typed storage and are always indexed at high ca
 
 | Key | Set via | Dashboard dimension |
 |-----|---------|-------------------|
-| `environment` | `X-Toolken-Meta-Environment` | Environment |
-| `session_id` | `X-Toolken-Meta-Session-Id` | Session |
+| `environment` | `X-Toolken-Metadata-Environment` | Environment |
+| `session_id` | `X-Toolken-Metadata-Session-Id` | Session |
 
 Every other key you send (`agent`, `customer_id`, `feature`, `tier`, or anything else) is stored as a metadata property and is equally filterable and groupable in the dashboard. There is no required list of keys -- send any key that makes sense for your system and it appears in the group-by controls automatically.
 
 ## Metadata limits
 
-The metadata you attach through `X-Toolken-Metadata` and `X-Toolken-Meta-*` follows a few limits:
+The metadata you attach through `X-Toolken-Metadata` and `X-Toolken-Metadata-*` follows a few limits:
 
 - Up to **16384 bytes** total (the serialized JSON object).
 - Up to **64 keys**.
-- Each key must match `^_?[a-z][a-z0-9_]{0,63}$` -- optional leading underscore, then start with a lowercase letter, followed by lowercase letters, digits, and underscores, up to 64 characters, plus an optional leading underscore. The reserved keys `environment` and `session_id` must be set through `X-Toolken-Meta-Environment` and `X-Toolken-Meta-Session-Id` instead of `X-Toolken-Metadata`.
+- Each key must match `^_?[a-z][a-z0-9_]{0,63}$` -- optional leading underscore, then start with a lowercase letter, followed by lowercase letters, digits, and underscores, up to 64 characters, plus an optional leading underscore. The reserved keys `environment` and `session_id` must be set through `X-Toolken-Metadata-Environment` and `X-Toolken-Metadata-Session-Id` instead of `X-Toolken-Metadata`.
 
 If the `X-Toolken-Metadata` value is not valid JSON, it is ignored silently and the request still goes through with no error. A well-formed JSON object that breaks one of the rules above -- an invalid key, more than 64 keys, or over 16384 bytes -- is rejected with `422 invalid_metadata`. Validate the JSON on your side before sending, since malformed JSON is dropped without an error.

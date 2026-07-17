@@ -35,7 +35,7 @@ Open (or create) `~/.openclaw/openclaw.json` and add a `toolken` entry under `mo
         apiKey: "${OPENAI_API_KEY}", // your provider key (BYOK); sent as Authorization, forwarded untouched
         headers: {
           "X-Toolken-Key": "${TOOLKEN_KEY}",
-          "X-Toolken-Meta-Agent": "research-agent"
+          "X-Toolken-Metadata-Agent": "research-agent"
         },
         models: [{ id: "gpt-4o-mini", name: "GPT-4o mini" }]
       }
@@ -50,7 +50,7 @@ Open (or create) `~/.openclaw/openclaw.json` and add a `toolken` entry under `mo
 
 <Step title="Use the Toolken provider in OpenClaw">
 
-Select the `toolken` provider and the `gpt-4o-mini` model (or whichever model you listed) when running your agent. OpenClaw routes the request through the gateway, attaching `X-Toolken-Key` and `X-Toolken-Meta-Agent` automatically.
+Select the `toolken` provider and the `gpt-4o-mini` model (or whichever model you listed) when running your agent. OpenClaw routes the request through the gateway, attaching `X-Toolken-Key` and `X-Toolken-Metadata-Agent` automatically.
 
 </Step>
 
@@ -64,7 +64,7 @@ Within seconds the request appears in the Toolken dashboard, tagged with the `ag
 
 <Accordion title="Attribute multiple agents separately">
 
-`X-Toolken-Meta-Agent` is set at the provider level, not per request. To break spend down by agent, define one Toolken provider entry per agent and give each a distinct `X-Toolken-Meta-Agent` value:
+`X-Toolken-Metadata-Agent` is set at the provider level, not per request. To break spend down by agent, define one Toolken provider entry per agent and give each a distinct `X-Toolken-Metadata-Agent` value:
 
 ```json5
 {
@@ -76,7 +76,7 @@ Within seconds the request appears in the Toolken dashboard, tagged with the `ag
         apiKey: "${OPENAI_API_KEY}",
         headers: {
           "X-Toolken-Key": "${TOOLKEN_KEY}",
-          "X-Toolken-Meta-Agent": "research-agent"
+          "X-Toolken-Metadata-Agent": "research-agent"
         },
         models: [{ id: "gpt-4o-mini", name: "GPT-4o mini (research)" }]
       },
@@ -86,7 +86,7 @@ Within seconds the request appears in the Toolken dashboard, tagged with the `ag
         apiKey: "${OPENAI_API_KEY}",
         headers: {
           "X-Toolken-Key": "${TOOLKEN_KEY}",
-          "X-Toolken-Meta-Agent": "summarizer-agent"
+          "X-Toolken-Metadata-Agent": "summarizer-agent"
         },
         models: [{ id: "gpt-4o-mini", name: "GPT-4o mini (summarizer)" }]
       }

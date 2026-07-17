@@ -8,9 +8,9 @@ icon: "server"
 
 <Steps>
 
-<Step title="Set X-Toolken-Meta-Environment on every request">
+<Step title="Set X-Toolken-Metadata-Environment on every request">
 
-Add `X-Toolken-Meta-Environment` to your requests. The value is any string, but `production` and `staging` are the most useful conventions.
+Add `X-Toolken-Metadata-Environment` to your requests. The value is any string, but `production` and `staging` are the most useful conventions.
 
 <CodeGroup>
 ```python Python
@@ -21,7 +21,7 @@ client = OpenAI(
     api_key="sk-...",  # your provider key, forwarded untouched
     default_headers={
         "X-Toolken-Key": "tk_live_...",
-        "X-Toolken-Meta-Environment": "production",
+        "X-Toolken-Metadata-Environment": "production",
     },
 )
 client.chat.completions.create(
@@ -38,7 +38,7 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // forwarded untouched
   defaultHeaders: {
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Meta-Environment": process.env.NODE_ENV === "production" ? "production" : "staging",
+    "X-Toolken-Metadata-Environment": process.env.NODE_ENV === "production" ? "production" : "staging",
   },
 });
 await client.chat.completions.create({
@@ -51,7 +51,7 @@ await client.chat.completions.create({
 curl https://gateway.toolken.ai/v1/chat/completions \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
   -H "X-Toolken-Key: tk_live_..." \
-  -H "X-Toolken-Meta-Environment: production" \
+  -H "X-Toolken-Metadata-Environment: production" \
   -H "Content-Type: application/json" \
   -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Draft a release note for version 3.0."}]}'
 ```
@@ -73,13 +73,13 @@ Go to the cost view. Use the filter to show only `production` or only `staging`.
 
 <Accordion title="Combine environment with feature">
 
-Layer `X-Toolken-Feature` and `X-Toolken-Meta-Environment` to get a full picture: how much did each agent cost, split by environment?
+Layer `X-Toolken-Metadata-Feature` and `X-Toolken-Metadata-Environment` to get a full picture: how much did each agent cost, split by environment?
 
 ```python
 default_headers={
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Feature": "report-generator",
-    "X-Toolken-Meta-Environment": "production",
+    "X-Toolken-Metadata-Feature": "report-generator",
+    "X-Toolken-Metadata-Environment": "production",
 }
 ```
 
@@ -89,17 +89,17 @@ Group by **Feature** and filter to `production` to see production-only cost per 
 
 <Accordion title="Track per session">
 
-Add `X-Toolken-Meta-Session-Id` to group all the LLM calls in a single user session. Combine with environment to separate session costs by deployment:
+Add `X-Toolken-Metadata-Session-Id` to group all the LLM calls in a single user session. Combine with environment to separate session costs by deployment:
 
 ```python
 default_headers={
     "X-Toolken-Key": "tk_live_...",
-    "X-Toolken-Meta-Environment": "production",
-    "X-Toolken-Meta-Session-Id": session_id,
+    "X-Toolken-Metadata-Environment": "production",
+    "X-Toolken-Metadata-Session-Id": session_id,
 }
 ```
 
-The `X-Toolken-Meta-*` convention maps any header suffix to a metadata key. `X-Toolken-Meta-Session-Id` becomes the `session_id` dimension in the dashboard.
+The `X-Toolken-Metadata-*` convention maps any header suffix to a metadata key. `X-Toolken-Metadata-Session-Id` becomes the `session_id` dimension in the dashboard.
 
 </Accordion>
 
